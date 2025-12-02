@@ -1,0 +1,140 @@
+{
+  "common": {
+    "add": "Ekle",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "close": "Kapat",
+    "confirm": "Onayla",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "sort": "Sırala",
+    "required": "Gerekli"
+  },
+  "vehicles": {
+    "title": "Araçlarım",
+    "addNew": "Yeni Araç Ekle",
+    "editVehicle": "Aracı Düzenle",
+    "vehicleName": "Araç Adı",
+    "brand": "Marka",
+    "customBrand": "Özel Marka",
+    "model": "Model",
+    "productionYear": "Üretim Yılı",
+    "licensePlate": "Plaka",
+    "fuelType": "Yakıt Tipi",
+    "isIncomeGenerating": "Gelir Getiren Araç mı?",
+    "purchaseDate": "Satın Alma Tarihi",
+    "purchasePrice": "Satın Alma Fiyatı",
+    "saleDate": "Satış Tarihi",
+    "salePrice": "Satış Fiyatı",
+    "vehicleImage": "Araç Resmi",
+    "selectVehicle": "Araç Seç",
+    "noVehicles": "Araç bulunamadı",
+    "firstVehiclePrompt": "Hadi ilk aracını kayıt edelim!",
+    "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?"
+  },
+  "fuelTypes": {
+    "gasoline": "Benzin",
+    "diesel": "Dizel",
+    "electric": "Elektrik",
+    "hybrid": "Hibrit",
+    "lpg": "LPG"
+  },
+  "transactions": {
+    "title": "İşlemler",
+    "addTransaction": "İşlem Ekle",
+    "recentTransactions": "Son İşlemler",
+    "amount": "Tutar",
+    "currency": "Para Birimi",
+    "date": "Tarih",
+    "description": "Açıklama",
+    "type": "Tür",
+    "odometerReading": "Kilometre",
+    "loadMore": "Daha Fazla Yükle",
+    "noTransactions": "İşlem bulunamadı"
+  },
+  "expenses": {
+    "title": "Giderler",
+    "addExpense": "Gider Ekle",
+    "quickFuel": "Hızlı Yakıt Girişi",
+    "expenseType": "Gider Türü",
+    "customExpenseType": "Özel Gider Türü",
+    "notes": "Notlar",
+    "totalExpenses": "Toplam Giderler"
+  },
+  "incomes": {
+    "title": "Gelirler",
+    "addIncome": "Gelir Ekle",
+    "incomeType": "Gelir Türü",
+    "customIncomeType": "Özel Gelir Türü",
+    "notes": "Notlar",
+    "totalIncome": "Toplam Gelir"
+  },
+  "statistics": {
+    "title": "İstatistikler",
+    "period": "Dönem",
+    "daily": "Günlük",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "customRange": "Özel Aralık",
+    "generateReport": "Rapor Oluştur",
+    "expenseBreakdown": "Gider Dağılımı",
+    "incomeBreakdown": "Gelir Dağılımı",
+    "netProfit": "Net Kar",
+    "netLoss": "Net Zarar",
+    "startDate": "Başlangıç Tarihi",
+    "endDate": "Bitiş Tarihi"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "theme": "Tema",
+    "lightMode": "Aydınlık Mod",
+    "darkMode": "Karanlık Mod",
+    "systemDefault": "Sistem Varsayılanı",
+    "subscription": "Abonelik",
+    "currentPlan": "Mevcut Plan",
+    "upgrade": "Yükselt",
+    "features": "Özellikler"
+  },
+  "subscription": {
+    "free": "Ücretsiz",
+    "basic": "Temel",
+    "freeTier": "Ücretsiz Plan",
+    "basicPlan": "Temel Plan",
+    "upgradePrompt": "Bu özelliğin kilidini açmak için yükseltin",
+    "features": {
+      "limitedVehicles": "Tür başına 1 araç",
+      "unlimitedVehicles": "Sınırsız araç",
+      "basicExpenseTypes": "Temel gider türleri",
+      "customExpenseTypes": "Özel gider türleri",
+      "basicIncomeTypes": "Temel gelir türleri",
+      "customIncomeTypes": "Özel gelir türleri",
+      "allReports": "Tüm raporlar",
+      "multiLanguage": "Çoklu dil desteği",
+      "darkMode": "Karanlık mod"
+    }
+  },
+  "validation": {
+    "required": "Bu alan gereklidir",
+    "invalidEmail": "Geçersiz e-posta adresi",
+    "invalidNumber": "Geçersiz sayı",
+    "invalidDate": "Geçersiz tarih",
+    "minLength": "Minimum {{min}} karakter gerekli",
+    "maxLength": "Maximum {{max}} karakter izin verilir"
+  },
+  "messages": {
+    "vehicleAdded": "Araç başarıyla eklendi",
+    "vehicleUpdated": "Araç başarıyla güncellendi",
+    "vehicleDeleted": "Araç başarıyla silindi",
+    "transactionAdded": "İşlem başarıyla eklendi",
+    "expenseAdded": "Gider başarıyla eklendi",
+    "incomeAdded": "Gelir başarıyla eklendi",
+    "upgradRequired": "Bu özellik Temel plan gerektirir"
+  }
+}

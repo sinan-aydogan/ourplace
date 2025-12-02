@@ -1,0 +1,140 @@
+{
+  "common": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "required": "Required"
+  },
+  "vehicles": {
+    "title": "My Vehicles",
+    "addNew": "Add New Vehicle",
+    "editVehicle": "Edit Vehicle",
+    "vehicleName": "Vehicle Name",
+    "brand": "Brand",
+    "customBrand": "Custom Brand",
+    "model": "Model",
+    "productionYear": "Production Year",
+    "licensePlate": "License Plate",
+    "fuelType": "Fuel Type",
+    "isIncomeGenerating": "Income Generating Vehicle?",
+    "purchaseDate": "Purchase Date",
+    "purchasePrice": "Purchase Price",
+    "saleDate": "Sale Date",
+    "salePrice": "Sale Price",
+    "vehicleImage": "Vehicle Image",
+    "selectVehicle": "Select Vehicle",
+    "noVehicles": "No vehicles found",
+    "firstVehiclePrompt": "Let's register your first vehicle!",
+    "deleteConfirm": "Are you sure you want to delete this vehicle?"
+  },
+  "fuelTypes": {
+    "gasoline": "Gasoline",
+    "diesel": "Diesel",
+    "electric": "Electric",
+    "hybrid": "Hybrid",
+    "lpg": "LPG"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "addTransaction": "Add Transaction",
+    "recentTransactions": "Recent Transactions",
+    "amount": "Amount",
+    "currency": "Currency",
+    "date": "Date",
+    "description": "Description",
+    "type": "Type",
+    "odometerReading": "Odometer Reading",
+    "loadMore": "Load More",
+    "noTransactions": "No transactions found"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "addExpense": "Add Expense",
+    "quickFuel": "Quick Fuel Entry",
+    "expenseType": "Expense Type",
+    "customExpenseType": "Custom Expense Type",
+    "notes": "Notes",
+    "totalExpenses": "Total Expenses"
+  },
+  "incomes": {
+    "title": "Incomes",
+    "addIncome": "Add Income",
+    "incomeType": "Income Type",
+    "customIncomeType": "Custom Income Type",
+    "notes": "Notes",
+    "totalIncome": "Total Income"
+  },
+  "statistics": {
+    "title": "Statistics",
+    "period": "Period",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "customRange": "Custom Range",
+    "generateReport": "Generate Report",
+    "expenseBreakdown": "Expense Breakdown",
+    "incomeBreakdown": "Income Breakdown",
+    "netProfit": "Net Profit",
+    "netLoss": "Net Loss",
+    "startDate": "Start Date",
+    "endDate": "End Date"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "systemDefault": "System Default",
+    "subscription": "Subscription",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade",
+    "features": "Features"
+  },
+  "subscription": {
+    "free": "Free",
+    "basic": "Basic",
+    "freeTier": "Free Tier",
+    "basicPlan": "Basic Plan",
+    "upgradePrompt": "Upgrade to unlock this feature",
+    "features": {
+      "limitedVehicles": "1 vehicle per type",
+      "unlimitedVehicles": "Unlimited vehicles",
+      "basicExpenseTypes": "Basic expense types",
+      "customExpenseTypes": "Custom expense types",
+      "basicIncomeTypes": "Basic income types",
+      "customIncomeTypes": "Custom income types",
+      "allReports": "All reports",
+      "multiLanguage": "Multi-language support",
+      "darkMode": "Dark mode"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidNumber": "Invalid number",
+    "invalidDate": "Invalid date",
+    "minLength": "Minimum {{min}} characters required",
+    "maxLength": "Maximum {{max}} characters allowed"
+  },
+  "messages": {
+    "vehicleAdded": "Vehicle added successfully",
+    "vehicleUpdated": "Vehicle updated successfully",
+    "vehicleDeleted": "Vehicle deleted successfully",
+    "transactionAdded": "Transaction added successfully",
+    "expenseAdded": "Expense added successfully",
+    "incomeAdded": "Income added successfully",
+    "upgradRequired": "This feature requires Basic plan"
+  }
+}
