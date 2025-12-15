@@ -587,7 +587,7 @@ export default function Home() {
           <VStack space="md">
             <HStack className="justify-between items-center px-1">
               <Heading size="lg" className="font-bold">{t('transactions.recentTransactions')}</Heading>
-              <Text className="text-sm text-typography-500">{transactions.length} items</Text>
+              <Text className="text-sm text-typography-500">{transactions.length} {t('transactions.items')}</Text>
             </HStack>
             
             {transactions.length === 0 ? (
@@ -622,7 +622,9 @@ export default function Home() {
                           </Box>
                           <VStack space="xs" className="flex-1">
                             <Text className="font-semibold text-base">
-                              {transaction.expense_type_name || transaction.income_type_name}
+                              {(transaction.expense_type_name?.toLowerCase() === 'fuel' 
+                                ? t('fuel.fuel') 
+                                : transaction.expense_type_name) || transaction.income_type_name}
                             </Text>
                             {transaction.description && (
                               <Text className="text-sm text-typography-500" numberOfLines={1}>

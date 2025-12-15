@@ -11,24 +11,26 @@ const LANGUAGE_KEY = '@cockpit:language';
 const resources = {
   en: { translation: en },
   tr: { translation: tr },
-  de: { translation: en }, // TODO: Add German translations
-  fr: { translation: en }, // TODO: Add French translations
-  bg: { translation: en }, // TODO: Add Bulgarian translations
-  it: { translation: en }, // TODO: Add Italian translations
 };
 
-const supportedLanguages = ['en', 'tr', 'de', 'fr', 'bg', 'it'];
+const supportedLanguages = ['en', 'tr'];
 
 const getDeviceLanguage = (): string => {
-  const locale = Localization.getLocales()[0];
-  const languageCode = locale?.languageCode || 'en';
-  
-  // Check if device language is supported
-  if (supportedLanguages.includes(languageCode)) {
-    return languageCode;
+  try {
+    const locale = Localization.getLocales()[0];
+    const languageCode = locale?.languageCode || 'en';
+    
+    // Check if device language is supported (only en and tr)
+    if (supportedLanguages.includes(languageCode)) {
+      return languageCode;
+    }
+    
+    // Default to English if device language is not supported
+    return 'en';
+  } catch (error) {
+    console.error('Failed to get device language:', error);
+    return 'en'; // Default to English if detection fails
   }
-  
-  return 'en'; // Default to English
 };
 
 const getSavedLanguage = async (): Promise<string | null> => {
@@ -49,21 +51,38 @@ const saveLanguage = async (language: string): Promise<void> => {
 };
 
 export const initializeI18n = async (): Promise<void> => {
-  const savedLanguage = await getSavedLanguage();
-  const deviceLanguage = getDeviceLanguage();
-  const initialLanguage = savedLanguage || deviceLanguage;
+  try {
+    const savedLanguage = await getSavedLanguage();
+    const deviceLanguage = getDeviceLanguage();
+    // Use saved language if exists, otherwise use device language, fallback to English
+    const initialLanguage = savedLanguage || deviceLanguage || 'en';
 
-  await i18n
-    .use(initReactI18next)
-    .init({
-      resources,
-      lng: initialLanguage,
-      fallbackLng: 'en',
-      compatibilityJSON: 'v4',
-      interpolation: {
-        escapeValue: false,
-      },
-    });
+    await i18n
+      .use(initReactI18next)
+      .init({
+        resources,
+        lng: initialLanguage,
+        fallbackLng: 'en',
+        compatibilityJSON: 'v4',
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+  } catch (error) {
+    console.error('Failed to initialize i18n:', error);
+    // Fallback initialization with English
+    await i18n
+      .use(initReactI18next)
+      .init({
+        resources,
+        lng: 'en',
+        fallbackLng: 'en',
+        compatibilityJSON: 'v4',
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+  }
 };
 
 export const changeLanguage = async (language: string): Promise<void> => {

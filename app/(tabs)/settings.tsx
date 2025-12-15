@@ -23,6 +23,7 @@ import {
 import { ChevronDownIcon } from '@/components/ui/icon';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
+import { changeLanguage, getCurrentLanguage, getSupportedLanguages } from '@/services/i18n';
 import type { Currency } from '@/types/database';
 
 export default function SettingsPage() {
@@ -30,9 +31,12 @@ export default function SettingsPage() {
   const { user, refreshUser } = useApp();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState(getCurrentLanguage());
+  const supportedLanguages = getSupportedLanguages();
 
   useEffect(() => {
     loadCurrencies();
+    setSelectedLanguage(getCurrentLanguage());
   }, []);
 
   useEffect(() => {
@@ -64,12 +68,73 @@ export default function SettingsPage() {
     }
   };
 
+  const handleLanguageChange = async (newLanguage: string) => {
+    try {
+      await changeLanguage(newLanguage);
+      setSelectedLanguage(newLanguage);
+      Alert.alert(t('common.success'), t('settings.languageUpdated'));
+    } catch (error) {
+      console.error('Failed to change language:', error);
+      Alert.alert(t('common.error'), 'Failed to change language');
+    }
+  };
+
+  const getLanguageName = (code: string): string => {
+    const languageNames: Record<string, string> = {
+      en: t('settings.english'),
+      tr: t('settings.turkish'),
+    };
+    return languageNames[code] || code.toUpperCase();
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       <Box className="flex-1 bg-background-50">
         <ScrollView>
           <VStack className="p-4" space="lg">
             <Heading size="2xl" className="font-bold">{t('settings.title')}</Heading>
+            
+            {/* Language Settings */}
+            <Card className="p-5 shadow-md">
+              <VStack space="md">
+                <VStack space="xs">
+                  <Text className="text-sm text-typography-500 uppercase font-semibold">
+                    {t('settings.language')}
+                  </Text>
+                  <Text className="text-xs text-typography-400">
+                    {t('settings.languageDescription')}
+                  </Text>
+                </VStack>
+                
+                <Select
+                  selectedValue={selectedLanguage}
+                  onValueChange={handleLanguageChange}
+                >
+                  <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
+                    <SelectInput 
+                      placeholder={t('settings.language')}
+                      value={getLanguageName(selectedLanguage)}
+                    />
+                    <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectBackdrop />
+                    <SelectContent>
+                      <SelectDragIndicatorWrapper>
+                        <SelectDragIndicator />
+                      </SelectDragIndicatorWrapper>
+                      {supportedLanguages.map((lang) => (
+                        <SelectItem
+                          key={lang}
+                          label={getLanguageName(lang)}
+                          value={lang}
+                        />
+                      ))}
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </VStack>
+            </Card>
             
             {/* Currency Settings */}
             <Card className="p-5 shadow-md">

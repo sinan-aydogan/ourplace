@@ -69,10 +69,13 @@
     "startOdometer": "Start KM",
     "endOdometer": "End KM",
     "loadMore": "Load More",
-    "noTransactions": "No transactions found"
+    "noTransactions": "No transactions found",
+    "items": "items"
   },
   "expenses": {
     "title": "Expenses",
+    "subtitle": "Track your vehicle expenses",
+    "recentExpenses": "Recent Expenses",
     "addExpense": "Add Expense",
     "quickFuel": "Quick Fuel Entry",
     "expenseType": "Expense Type",
@@ -96,6 +99,8 @@
   },
   "incomes": {
     "title": "Incomes",
+    "subtitle": "Track your vehicle income",
+    "recentIncome": "Recent Income",
     "addIncome": "Add Income",
     "incomeType": "Income Type",
     "customIncomeType": "Custom Income Type",
@@ -131,6 +136,10 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "languageDescription": "Select application language",
+    "english": "English",
+    "turkish": "Turkish",
+    "languageUpdated": "Language updated successfully",
     "theme": "Theme",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
@@ -197,7 +206,8 @@
     "costPerKm": "Cost/km",
     "consumption": "Consumption",
     "litersPer100km": "L/100km",
-    "unitPrice": "Unit Price (per liter)"
+    "unitPrice": "Unit Price (per liter)",
+    "fuel": "Fuel"
   },
   "reports": {
     "title": "Reports",
@@ -206,6 +216,7 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "custom": "Custom",
+    "customPeriod": "Custom Period",
     "income": "Income",
     "expense": "Expense",
     "netProfit": "Net Profit",

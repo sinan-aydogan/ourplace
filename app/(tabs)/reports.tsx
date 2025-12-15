@@ -18,6 +18,14 @@ export default function ReportsPage() {
   const { t } = useTranslation();
   const [selectedRange, setSelectedRange] = useState<DateRange>('monthly');
   const [refreshing, setRefreshing] = useState(false);
+
+  const translateCategoryName = (name: string): string => {
+    const lowerName = name?.toLowerCase() || '';
+    if (lowerName === 'fuel' || lowerName === 'yakıt') {
+      return t('fuel.fuel');
+    }
+    return name;
+  };
   const { 
     period,
     totalIncome, 
@@ -110,7 +118,7 @@ export default function ReportsPage() {
                 <HStack className="justify-between items-center">
                   <VStack space="xs" className="flex-1">
                     <Text className="font-semibold text-sm text-typography-900">
-                      {category.name}
+                      {translateCategoryName(category.name)}
                     </Text>
                     <Text className="text-xs text-typography-500">
                       {category.count} {t('reports.transactions')}

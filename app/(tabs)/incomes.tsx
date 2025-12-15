@@ -364,7 +364,7 @@ export default function IncomesPage() {
               <Text className="text-3xl">💰</Text>
               <VStack space="xs" className="flex-1">
                 <Heading size="2xl" className="font-bold" numberOfLines={1}>{t('incomes.title')}</Heading>
-                <Text className="text-typography-500" numberOfLines={1}>Track your vehicle income</Text>
+                <Text className="text-typography-500" numberOfLines={1}>{t('incomes.subtitle')}</Text>
               </VStack>
             </HStack>
 
@@ -638,9 +638,9 @@ export default function IncomesPage() {
             {/* Incomes List */}
             <VStack space="md">
               <HStack className="justify-between items-center px-1">
-                <Heading size="lg" className="font-bold">Recent Income</Heading>
+                <Heading size="lg" className="font-bold">{t('incomes.recentIncome')}</Heading>
                 <HStack space="sm" className="items-center">
-                  <Text className="text-sm text-typography-500">{incomes.length} items</Text>
+                  <Text className="text-sm text-typography-500">{incomes.length} {t('transactions.items')}</Text>
                   <Button
                     size="sm"
                     variant="link"

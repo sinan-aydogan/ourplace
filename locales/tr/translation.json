@@ -69,10 +69,13 @@
     "startOdometer": "Başlangıç KM",
     "endOdometer": "Bitiş KM",
     "loadMore": "Daha Fazla Yükle",
-    "noTransactions": "İşlem bulunamadı"
+    "noTransactions": "İşlem bulunamadı",
+    "items": "öğe"
   },
   "expenses": {
     "title": "Giderler",
+    "subtitle": "Araç giderlerinizi takip edin",
+    "recentExpenses": "Son Giderler",
     "addExpense": "Gider Ekle",
     "quickFuel": "Hızlı Yakıt Girişi",
     "expenseType": "Gider Türü",
@@ -96,6 +99,8 @@
   },
   "incomes": {
     "title": "Gelirler",
+    "subtitle": "Araç gelirlerinizi takip edin",
+    "recentIncome": "Son Gelirler",
     "addIncome": "Gelir Ekle",
     "incomeType": "Gelir Türü",
     "customIncomeType": "Özel Gelir Türü",
@@ -131,6 +136,10 @@
   "settings": {
     "title": "Ayarlar",
     "language": "Dil",
+    "languageDescription": "Uygulama dilini seçin",
+    "english": "İngilizce",
+    "turkish": "Türkçe",
+    "languageUpdated": "Dil başarıyla güncellendi",
     "theme": "Tema",
     "lightMode": "Aydınlık Mod",
     "darkMode": "Karanlık Mod",
@@ -197,7 +206,8 @@
     "costPerKm": "Maliyet/km",
     "consumption": "Tüketim",
     "litersPer100km": "L/100km",
-    "unitPrice": "Birim Fiyat (litre başı)"
+    "unitPrice": "Birim Fiyat (litre başı)",
+    "fuel": "Yakıt"
   },
   "reports": {
     "title": "Raporlar",
@@ -206,6 +216,7 @@
     "monthly": "Aylık",
     "yearly": "Yıllık",
     "custom": "Özel",
+    "customPeriod": "Özel Dönem",
     "income": "Gelir",
     "expense": "Gider",
     "netProfit": "Net Kar",

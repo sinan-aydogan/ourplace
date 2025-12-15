@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import type { TransactionWithDetails } from '@/types/database';
@@ -37,6 +38,7 @@ export function useReportData(
   dateRange: DateRange = 'monthly',
   customRange?: CustomDateRange
 ) {
+  const { t, i18n } = useTranslation();
   const { selectedVehicle, user } = useApp();
   const [reportData, setReportData] = useState<ReportData>({
     period: '',
@@ -253,34 +255,24 @@ export function useReportData(
   };
 
   const formatPeriodString = (range: DateRange, date: Date): string => {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    
     switch (range) {
       case 'daily':
-        return date.toLocaleDateString();
+        return date.toLocaleDateString(locale);
       case 'weekly':
         const weekEnd = new Date(date);
         weekEnd.setDate(date.getDate() + 6);
-        return `${date.getDate()} - ${weekEnd.getDate()} ${months[date.getMonth()]}`;
+        const startDay = date.toLocaleDateString(locale, { day: 'numeric' });
+        const endDay = weekEnd.toLocaleDateString(locale, { day: 'numeric' });
+        const monthName = date.toLocaleDateString(locale, { month: 'short' });
+        return `${startDay} - ${endDay} ${monthName}`;
       case 'monthly':
-        return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
       case 'yearly':
-        return `${date.getFullYear()}`;
+        return date.toLocaleDateString(locale, { year: 'numeric' });
       case 'custom':
-        return 'Custom Period';
+        return t('reports.customPeriod');
       default:
         return '';
     }
