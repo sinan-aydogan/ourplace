@@ -46,11 +46,21 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT,
         subscription_plan TEXT NOT NULL DEFAULT 'free',
+        default_currency TEXT NOT NULL DEFAULT 'TRY',
         subscription_expiry TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
+
+    // Migration: Add default_currency column if it doesn't exist
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE users ADD COLUMN default_currency TEXT NOT NULL DEFAULT 'TRY';
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
 
     // Currencies table
     await this.db.execAsync(`
@@ -135,8 +145,14 @@ class DatabaseService {
         transaction_type TEXT NOT NULL,
         amount REAL NOT NULL,
         currency TEXT NOT NULL DEFAULT 'USD',
+        default_currency TEXT NOT NULL DEFAULT 'USD',
+        foreign_currency TEXT,
+        exchange_rate REAL,
         expense_type_id INTEGER,
         income_type_id INTEGER,
+        energy_station_id INTEGER,
+        customer_id INTEGER,
+        company_id INTEGER,
         description TEXT,
         transaction_date TEXT NOT NULL,
         odometer_reading INTEGER,
@@ -145,9 +161,56 @@ class DatabaseService {
         updated_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
         FOREIGN KEY (expense_type_id) REFERENCES expense_types(id),
-        FOREIGN KEY (income_type_id) REFERENCES income_types(id)
+        FOREIGN KEY (income_type_id) REFERENCES income_types(id),
+        FOREIGN KEY (energy_station_id) REFERENCES energy_stations(id),
+        FOREIGN KEY (customer_id) REFERENCES customers(id),
+        FOREIGN KEY (company_id) REFERENCES companies(id)
       );
     `);
+
+    // Migration: Add missing columns if they don't exist
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN default_currency TEXT NOT NULL DEFAULT 'USD';
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN foreign_currency TEXT;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN exchange_rate REAL;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN energy_station_id INTEGER;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN customer_id INTEGER;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicle_transactions ADD COLUMN company_id INTEGER;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
 
     // Expenses table
     await this.db.execAsync(`
@@ -155,11 +218,21 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_id INTEGER NOT NULL,
         expense_type_id INTEGER NOT NULL,
+        fuel_unit_price REAL,
         notes TEXT,
         FOREIGN KEY (transaction_id) REFERENCES vehicle_transactions(id),
         FOREIGN KEY (expense_type_id) REFERENCES expense_types(id)
       );
     `);
+
+    // Migration: Add fuel_unit_price column if it doesn't exist
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE expenses ADD COLUMN fuel_unit_price REAL;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
 
     // Incomes table
     await this.db.execAsync(`
@@ -405,17 +478,24 @@ class DatabaseService {
 
     const result = await this.db.runAsync(
       `INSERT INTO vehicle_transactions (
-        vehicle_id, transaction_type, amount, currency, expense_type_id,
-        income_type_id, description, transaction_date, odometer_reading,
-        receipt_image_uri
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        vehicle_id, transaction_type, amount, currency, default_currency,
+        foreign_currency, exchange_rate, expense_type_id, income_type_id,
+        energy_station_id, customer_id, company_id, description,
+        transaction_date, odometer_reading, receipt_image_uri
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         input.vehicle_id,
         input.transaction_type,
         input.amount,
         input.currency,
+        input.default_currency,
+        input.foreign_currency || null,
+        input.exchange_rate || null,
         input.expense_type_id || null,
         input.income_type_id || null,
+        input.energy_station_id || null,
+        input.customer_id || null,
+        input.company_id || null,
         input.description || null,
         input.transaction_date,
         input.odometer_reading || null,
@@ -443,11 +523,13 @@ class DatabaseService {
       SELECT vt.*,
         v.name as vehicle_name,
         et.name as expense_type_name,
-        it.name as income_type_name
+        it.name as income_type_name,
+        e.fuel_unit_price as fuel_unit_price
       FROM vehicle_transactions vt
       LEFT JOIN vehicles v ON vt.vehicle_id = v.id
       LEFT JOIN expense_types et ON vt.expense_type_id = et.id
       LEFT JOIN income_types it ON vt.income_type_id = it.id
+      LEFT JOIN expenses e ON vt.id = e.transaction_id
       WHERE vt.vehicle_id = ?
       ORDER BY vt.transaction_date DESC, vt.created_at DESC
     `;
@@ -472,8 +554,13 @@ class DatabaseService {
     if (!this.db) throw new Error('Database not initialized');
 
     const result = await this.db.runAsync(
-      'INSERT INTO expenses (transaction_id, expense_type_id, notes) VALUES (?, ?, ?)',
-      [input.transaction_id, input.expense_type_id, input.notes || null]
+      'INSERT INTO expenses (transaction_id, expense_type_id, fuel_unit_price, notes) VALUES (?, ?, ?, ?)',
+      [
+        input.transaction_id,
+        input.expense_type_id,
+        input.fuel_unit_price || null,
+        input.notes || null
+      ]
     );
 
     const expense = await this.db.getFirstAsync<Expense>(
@@ -687,10 +774,12 @@ class DatabaseService {
   async getLastFuelTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
     return await this.db.getFirstAsync<TransactionWithDetails>(
-      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name
+      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name,
+        e.fuel_unit_price as fuel_unit_price
        FROM vehicle_transactions vt
        LEFT JOIN expense_types et ON vt.expense_type_id = et.id
        LEFT JOIN income_types it ON vt.income_type_id = it.id
+       LEFT JOIN expenses e ON vt.id = e.transaction_id
        WHERE vt.vehicle_id = ? AND vt.transaction_type = 'expense' 
        AND (et.name LIKE '%fuel%' OR et.name LIKE '%yakıt%' OR LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
        ORDER BY vt.transaction_date DESC, vt.created_at DESC

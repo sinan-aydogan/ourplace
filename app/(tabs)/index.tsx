@@ -641,7 +641,7 @@ export default function Home() {
                               {transaction.odometer_reading && (
                                 <>
                                   <Text className="text-xs text-typography-400">•</Text>
-                                  <Text className="text-xs text-typography-400">
+                                  <Text className="text-xs text-typography-700 font-semibold">
                                     {transaction.odometer_reading.toLocaleString()} km
                                   </Text>
                                 </>
@@ -681,7 +681,7 @@ export default function Home() {
                           <HStack space="lg" className="justify-around">
                             <VStack space="xs" className="items-center">
                               <Text className="text-xs text-typography-500 uppercase">🛣️ {t('fuel.distance')}</Text>
-                              <Text className="font-bold text-sm text-primary-600">
+                              <Text className="font-extrabold text-base text-primary-600">
                                 {fuelMetrics.kmDriven.toLocaleString()} km
                               </Text>
                             </VStack>
