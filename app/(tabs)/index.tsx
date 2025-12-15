@@ -234,7 +234,7 @@ export default function Home() {
       setOdometer('');
       setFuelUnitPrice('');
       setExchangeRate('');
-      setSelectedCurrency(user.default_currency); // Reset to default
+      setSelectedCurrency(defaultCurrency); // Reset to default
       
       // Reload transactions
       await loadTransactions();

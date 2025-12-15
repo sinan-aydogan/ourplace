@@ -198,5 +198,23 @@
     "consumption": "Consumption",
     "litersPer100km": "L/100km",
     "unitPrice": "Unit Price (per liter)"
+  },
+  "reports": {
+    "title": "Reports",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "custom": "Custom",
+    "income": "Income",
+    "expense": "Expense",
+    "netProfit": "Net Profit",
+    "lastPeriod": "last period",
+    "expenseByCategory": "Expense by Category",
+    "incomeByCategory": "Income by Category",
+    "transactions": "transactions",
+    "noData": "No data available",
+    "noTransactions": "No transactions in this period",
+    "generateReport": "Generate Report"
   }
 }

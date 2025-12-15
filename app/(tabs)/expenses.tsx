@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ScrollView, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -174,6 +175,15 @@ export default function ExpensesPage() {
     }
   }, [selectedVehicle]);
 
+  // Refresh when screen gains focus (e.g., after adding fuel elsewhere)
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedVehicle) {
+        loadExpenses();
+      }
+    }, [selectedVehicle])
+  );
+
   // Apply filters whenever filter options change
   useEffect(() => {
     applyFilters();
@@ -310,7 +320,7 @@ export default function ExpensesPage() {
       setDescription('');
       setOdometer('');
       setExchangeRate('');
-      setSelectedCurrency(user.default_currency);
+      setSelectedCurrency(defaultCurrency);
       setSelectedEnergyStation(null);
       setSelectedCompany(null);
       
@@ -351,7 +361,7 @@ export default function ExpensesPage() {
         >
           <VStack className="p-4" space="lg">
             {/* Modern Header */}
-            <HStack space="md" alignItems="center" className="px-1">
+            <HStack space="md" className="px-1 items-center">
               <Text className="text-3xl">💸</Text>
               <VStack space="xs" className="flex-1">
                 <Heading size="2xl" className="font-bold" numberOfLines={1}>{t('expenses.title')}</Heading>
@@ -460,7 +470,7 @@ export default function ExpensesPage() {
                     </Button>
                   </HStack>
                 ) : (
-                  <HStack space="sm" alignItems="center">
+                  <HStack space="sm" className="items-center">
                     <VStack space="xs" className="flex-1">
                       <Text className="font-semibold text-sm text-typography-700">{t('expenses.company')}</Text>
                       <Select
@@ -499,13 +509,13 @@ export default function ExpensesPage() {
                       onPress={() => setShowCompanyModal(true)}
                       className="rounded-full h-6 w-6 p-0 flex-none -mb-6"
                     >
-                      <ButtonIcon as={Plus} size={12} />
+                      <ButtonIcon as={Plus} size="xs" />
                     </Button>
                   </HStack>
                 )}
 
                 {/* Odometer Reading with +/- buttons */}
-                <HStack space="sm" alignItems="center">
+                <HStack space="sm" className="items-center">
                   <VStack className="flex-1">
                     <Input variant="outline" className={`border-2 rounded-xl ${odometer && lastFuelTransaction?.odometer_reading && parseInt(odometer) < lastFuelTransaction.odometer_reading ? 'border-error-500' : 'border-background-200'}`}>
                       <InputField
@@ -529,12 +539,12 @@ export default function ExpensesPage() {
                     }}
                     className="rounded-full h-6 w-6 p-0 flex-none"
                   >
-                    <ButtonIcon as={Plus} size={12} />
+                    <ButtonIcon as={Plus} size="xs" />
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    isDisabled={!odometer || (lastFuelTransaction?.odometer_reading && parseInt(odometer) - 100 <= lastFuelTransaction.odometer_reading)}
+                    isDisabled={!odometer || !!(lastFuelTransaction?.odometer_reading && parseInt(odometer) - 100 <= lastFuelTransaction.odometer_reading)}
                     onPress={() => {
                       const currentValue = parseInt(odometer);
                       if (currentValue > 100) {
@@ -543,7 +553,7 @@ export default function ExpensesPage() {
                     }}
                     className="rounded-full h-6 w-6 p-0 flex-none"
                   >
-                    <ButtonIcon as={Minus} size={12} />
+                    <ButtonIcon as={Minus} size="xs" />
                   </Button>
                 </HStack>
 

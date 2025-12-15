@@ -198,5 +198,23 @@
     "consumption": "Tüketim",
     "litersPer100km": "L/100km",
     "unitPrice": "Birim Fiyat (litre başı)"
+  },
+  "reports": {
+    "title": "Raporlar",
+    "daily": "Günlük",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "custom": "Özel",
+    "income": "Gelir",
+    "expense": "Gider",
+    "netProfit": "Net Kar",
+    "lastPeriod": "önceki dönem",
+    "expenseByCategory": "Kategoriye Göre Gider",
+    "incomeByCategory": "Kategoriye Göre Gelir",
+    "transactions": "işlem",
+    "noData": "Veri yok",
+    "noTransactions": "Bu dönemde işlem yok",
+    "generateReport": "Rapor Oluştur"
   }
 }
