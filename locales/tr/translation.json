@@ -15,6 +15,13 @@
     "sort": "Sırala",
     "required": "Gerekli"
   },
+  "navigation": {
+    "home": "Ana Sayfa",
+    "reports": "Raporlar",
+    "expenses": "Giderler",
+    "incomes": "Gelirler",
+    "settings": "Ayarlar"
+  },
   "vehicles": {
     "title": "Araçlarım",
     "addNew": "Yeni Araç Ekle",
@@ -32,10 +39,13 @@
     "saleDate": "Satış Tarihi",
     "salePrice": "Satış Fiyatı",
     "vehicleImage": "Araç Resmi",
+    "addPhoto": "Fotoğraf eklemek için dokunun",
+    "removePhoto": "Fotoğrafı Kaldır",
     "selectVehicle": "Araç Seç",
     "noVehicles": "Araç bulunamadı",
     "firstVehiclePrompt": "Hadi ilk aracını kayıt edelim!",
-    "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?"
+    "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?",
+    "deleteConfirmMessage": "Bu işlem aracı ve tüm işlemlerini silecektir. Bu işlem geri alınamaz."
   },
   "fuelTypes": {
     "gasoline": "Benzin",
@@ -47,13 +57,17 @@
   "transactions": {
     "title": "İşlemler",
     "addTransaction": "İşlem Ekle",
+    "editTransaction": "İşlemi Düzenle",
     "recentTransactions": "Son İşlemler",
     "amount": "Tutar",
     "currency": "Para Birimi",
+    "exchangeRate": "Döviz Kuru (1 {{currency}} = ? {{defaultCurrency}})",
     "date": "Tarih",
     "description": "Açıklama",
     "type": "Tür",
-    "odometerReading": "Kilometre",
+    "odometerReading": "Kilometre (km)",
+    "startOdometer": "Başlangıç KM",
+    "endOdometer": "Bitiş KM",
     "loadMore": "Daha Fazla Yükle",
     "noTransactions": "İşlem bulunamadı"
   },
@@ -64,7 +78,21 @@
     "expenseType": "Gider Türü",
     "customExpenseType": "Özel Gider Türü",
     "notes": "Notlar",
-    "totalExpenses": "Toplam Giderler"
+    "totalExpenses": "Toplam Giderler",
+    "company": "İşletme",
+    "energyStation": "Akaryakıt İstasyonu",
+    "selectCompany": "İşletme Seç",
+    "selectEnergyStation": "İstasyon Seç",
+    "addNewCompany": "Yeni İşletme Ekle",
+    "addNewEnergyStation": "Yeni İstasyon Ekle",
+    "lastMonth": "Geçen Ay",
+    "dateRange": "Tarih Aralığı",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "custom": "Özel",
+    "includeFuel": "Yakıt Giderlerini Dahil Et",
+    "categories": "Gider Kategorileri"
   },
   "incomes": {
     "title": "Gelirler",
@@ -72,7 +100,17 @@
     "incomeType": "Gelir Türü",
     "customIncomeType": "Özel Gelir Türü",
     "notes": "Notlar",
-    "totalIncome": "Toplam Gelir"
+    "totalIncome": "Toplam Gelir",
+    "customer": "Müşteri",
+    "selectCustomer": "Müşteri Seç",
+    "addNewCustomer": "Yeni Müşteri Ekle",
+    "lastMonth": "Geçen Ay",
+    "dateRange": "Tarih Aralığı",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "custom": "Özel",
+    "categories": "Gelir Kategorileri"
   },
   "statistics": {
     "title": "İstatistikler",
@@ -100,7 +138,9 @@
     "subscription": "Abonelik",
     "currentPlan": "Mevcut Plan",
     "upgrade": "Yükselt",
-    "features": "Özellikler"
+    "features": "Özellikler",
+    "defaultCurrency": "Varsayılan Para Birimi",
+    "currencyUpdated": "Varsayılan para birimi başarıyla güncellendi"
   },
   "subscription": {
     "free": "Ücretsiz",
@@ -126,7 +166,10 @@
     "invalidNumber": "Geçersiz sayı",
     "invalidDate": "Geçersiz tarih",
     "minLength": "Minimum {{min}} karakter gerekli",
-    "maxLength": "Maximum {{max}} karakter izin verilir"
+    "maxLength": "Maximum {{max}} karakter izin verilir",
+    "odometerMustBeGreater": "Kilometre değeri son kaydedilen değerden büyük olmalıdır ({{lastKm}} km)",
+    "endOdometerMustBeGreater": "Bitiş kilometresi başlangıç kilometresinden büyük olmalıdır",
+    "startOdometerMustBeGreater": "Başlangıç kilometresi son kaydedilen bitiş kilometresinden büyük olmalıdır ({{lastKm}} km)"
   },
   "messages": {
     "vehicleAdded": "Araç başarıyla eklendi",
@@ -135,6 +178,25 @@
     "transactionAdded": "İşlem başarıyla eklendi",
     "expenseAdded": "Gider başarıyla eklendi",
     "incomeAdded": "Gelir başarıyla eklendi",
-    "upgradRequired": "Bu özellik Temel plan gerektirir"
+    "upgradRequired": "Bu özellik Temel plan gerektirir",
+    "companyAdded": "İşletme başarıyla eklendi",
+    "customerAdded": "Müşteri başarıyla eklendi",
+    "energyStationAdded": "Akaryakıt istasyonu başarıyla eklendi"
+  },
+  "sources": {
+    "companyName": "İşletme Adı",
+    "customerName": "Müşteri Adı",
+    "stationName": "İstasyon Adı",
+    "geoCoordinate": "Konum (enlem,boylam)",
+    "addCompany": "İşletme Ekle",
+    "addCustomer": "Müşteri Ekle",
+    "addEnergyStation": "Akaryakıt İstasyonu Ekle"
+  },
+  "fuel": {
+    "distance": "Mesafe",
+    "costPerKm": "Maliyet/km",
+    "consumption": "Tüketim",
+    "litersPer100km": "L/100km",
+    "unitPrice": "Birim Fiyat (litre başı)"
   }
 }

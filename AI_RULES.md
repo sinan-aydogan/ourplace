@@ -1,0 +1,11 @@
+# AI Development Rules
+
+- Source of truth: Read and align with PRODUCT_REQUIREMENTS.md before any feature work. Follow the database schemas, feature scopes, and phased roadmap.
+- UI: Prefer Gluestack components already exposed under /components/ui. Discover/confirm via Gluestack MCP tools (get_all_components_metadata, select_components, get_selected_components_docs) before building screens.
+- MultiSelect: Always use react-native-element-dropdown `MultiSelect` for multi-choice inputs; style to match Gluestack theme.
+- Styling: Use NativeWind/Tailwind variants; respect light/dark themes configured in the Gluestack provider.
+- i18n: No hardcoded user-facing strings. Use react-i18next keys and add translations under /locales/{lang}/translation.json. Default language = device if supported, else en.
+- Data/business rules: Implement PRD SQLite schemas (vehicles, vehicle_transactions with expense/income detail tables, default + custom types). Enforce subscription limits (Free: 1 vehicle per type, no custom types; Basic: unlimited + custom). Income entries only when vehicle `is_income_generating` is true. Brand selection sets either brand_id or custom_brand_name, not both.
+- Process: Database-first, incremental per phases. Keep business logic in services/hooks and shared state in Context. Prefer reusable components over duplication.
+- Commands (npm flow): install deps `npm install`; dev `npm start`; platform runs `npm run android` / `npm run ios` / `npm run web`; web export `npm run build`; tests `npm test` (jest-expo).
+- Quality: No eslint/prettier config present—keep consistent TypeScript/React Native style. Maintain ASCII unless file already uses Unicode.

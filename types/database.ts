@@ -5,11 +5,67 @@ export type FuelType = 'gasoline' | 'diesel' | 'electric' | 'hybrid' | 'lpg';
 export type TransactionType = 'purchase' | 'sale' | 'expense' | 'income';
 export type SubscriptionPlan = 'free' | 'basic';
 
+// Currencies table
+export interface Currency {
+  code: string; // Primary key: 'TRY', 'USD', 'EUR'
+}
+
 // Brands table
 export interface Brand {
   id: number;
   name: string;
   vehicle_type: VehicleType;
+}
+
+// Energy Stations table (for fuel purchases)
+export interface EnergyStation {
+  id: number;
+  user_id: number;
+  name: string;
+  geo_coordinate: string | null; // "lat,lng" format
+  is_active: boolean;
+  created_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp
+}
+
+export interface CreateEnergyStationInput {
+  user_id: number;
+  name: string;
+  geo_coordinate?: string | null;
+}
+
+// Customers table (for income sources)
+export interface Customer {
+  id: number;
+  user_id: number;
+  name: string;
+  geo_coordinate: string | null; // "lat,lng" format
+  is_active: boolean;
+  created_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp
+}
+
+export interface CreateCustomerInput {
+  user_id: number;
+  name: string;
+  geo_coordinate?: string | null;
+}
+
+// Companies table (for expense sources)
+export interface Company {
+  id: number;
+  user_id: number;
+  name: string;
+  geo_coordinate: string | null; // "lat,lng" format
+  is_active: boolean;
+  created_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp
+}
+
+export interface CreateCompanyInput {
+  user_id: number;
+  name: string;
+  geo_coordinate?: string | null;
 }
 
 // Vehicles table
@@ -65,9 +121,15 @@ export interface VehicleTransaction {
   vehicle_id: number;
   transaction_type: TransactionType;
   amount: number;
-  currency: string;
+  currency: string; // Transaction currency (TRY, USD, EUR)
+  default_currency: string; // User's default currency at time of transaction
+  foreign_currency: string | null; // If different from default, same as currency
+  exchange_rate: number | null; // Exchange rate if foreign currency used
   expense_type_id: number | null;
   income_type_id: number | null;
+  energy_station_id: number | null; // For fuel expenses
+  customer_id: number | null; // For incomes
+  company_id: number | null; // For expenses
   description: string | null;
   transaction_date: string; // ISO date string
   odometer_reading: number | null;
@@ -81,8 +143,14 @@ export interface CreateTransactionInput {
   transaction_type: TransactionType;
   amount: number;
   currency: string;
+  default_currency: string;
+  foreign_currency?: string | null;
+  exchange_rate?: number | null;
   expense_type_id?: number | null;
   income_type_id?: number | null;
+  energy_station_id?: number | null;
+  customer_id?: number | null;
+  company_id?: number | null;
   description?: string | null;
   transaction_date: string;
   odometer_reading?: number | null;
@@ -110,12 +178,14 @@ export interface Expense {
   id: number;
   transaction_id: number;
   expense_type_id: number;
+  fuel_unit_price: number | null; // Price per liter for fuel expenses
   notes: string | null;
 }
 
 export interface CreateExpenseInput {
   transaction_id: number;
   expense_type_id: number;
+  fuel_unit_price?: number | null;
   notes?: string | null;
 }
 
@@ -140,12 +210,16 @@ export interface Income {
   id: number;
   transaction_id: number;
   income_type_id: number;
+  start_odometer: number | null;
+  end_odometer: number | null;
   notes: string | null;
 }
 
 export interface CreateIncomeInput {
   transaction_id: number;
   income_type_id: number;
+  start_odometer?: number | null;
+  end_odometer?: number | null;
   notes?: string | null;
 }
 
@@ -154,6 +228,7 @@ export interface User {
   id: number;
   email: string | null;
   subscription_plan: SubscriptionPlan;
+  default_currency: string; // Default: 'TRY'
   subscription_expiry: string | null; // ISO date string
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
@@ -168,6 +243,10 @@ export interface TransactionWithDetails extends VehicleTransaction {
   vehicle_name?: string;
   expense_type_name?: string;
   income_type_name?: string;
+  energy_station_name?: string;
+  customer_name?: string;
+  company_name?: string;
+  fuel_unit_price?: number | null; // From expenses table for fuel transactions
 }
 
 // Report types

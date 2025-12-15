@@ -15,6 +15,10 @@ import type {
   UpdateVehicleInput,
   VehicleWithBrand,
   TransactionWithDetails,
+  EnergyStation,
+  Company,
+  Customer,
+  Currency,
 } from '@/types/database';
 
 const DB_NAME = 'cockpit.db';
@@ -46,6 +50,18 @@ class DatabaseService {
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
+    `);
+
+    // Currencies table
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS currencies (
+        code TEXT PRIMARY KEY
+      );
+    `);
+
+    // Insert default currencies
+    await this.db.execAsync(`
+      INSERT OR IGNORE INTO currencies (code) VALUES ('TRY'), ('USD'), ('EUR');
     `);
 
     // Brands table
@@ -157,6 +173,48 @@ class DatabaseService {
       );
     `);
 
+    // Energy Stations table (for fuel purchases)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS energy_stations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        geo_coordinate TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    // Companies table (for expense sources)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS companies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        geo_coordinate TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    // Customers table (for income sources)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        geo_coordinate TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
     // Create indexes for better query performance
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_vehicles_user_id ON vehicles(user_id);
@@ -164,6 +222,9 @@ class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_transactions_date ON vehicle_transactions(transaction_date);
       CREATE INDEX IF NOT EXISTS idx_expenses_transaction_id ON expenses(transaction_id);
       CREATE INDEX IF NOT EXISTS idx_incomes_transaction_id ON incomes(transaction_id);
+      CREATE INDEX IF NOT EXISTS idx_energy_stations_user_id ON energy_stations(user_id);
+      CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
+      CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id);
     `);
   }
 
@@ -193,6 +254,38 @@ class DatabaseService {
   async getFirstUser(): Promise<User | null> {
     if (!this.db) throw new Error('Database not initialized');
     return await this.db.getFirstAsync<User>('SELECT * FROM users ORDER BY id LIMIT 1');
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key !== 'id' && value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+
+    if (fields.length === 0) throw new Error('No fields to update');
+
+    fields.push('updated_at = datetime("now")');
+    values.push(id);
+
+    await this.db.runAsync(
+      `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    const user = await this.db.getFirstAsync<User>(
+      'SELECT * FROM users WHERE id = ?',
+      [id]
+    );
+
+    if (!user) throw new Error('User not found');
+    return user;
   }
 
   // Vehicle operations
@@ -450,7 +543,95 @@ class DatabaseService {
     return await this.db.getAllAsync<Brand>('SELECT * FROM brands ORDER BY name ASC');
   }
 
+  // Currency operations
+  async getCurrencies(): Promise<{ code: string }[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<{ code: string }>('SELECT * FROM currencies ORDER BY code ASC');
+  }
+
   // Utility methods
+
+  async getVehicleById(id: number): Promise<Vehicle | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getFirstAsync<Vehicle>(
+      'SELECT * FROM vehicles WHERE id = ? AND is_active = 1',
+      [id]
+    );
+  }
+
+  async getEnergyStations(userId: number): Promise<EnergyStation[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<EnergyStation>(
+      'SELECT * FROM energy_stations WHERE user_id = ? AND is_active = 1 ORDER BY name ASC',
+      [userId]
+    );
+  }
+
+  async getCompanies(userId: number): Promise<Company[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<Company>(
+      'SELECT * FROM companies WHERE user_id = ? AND is_active = 1 ORDER BY name ASC',
+      [userId]
+    );
+  }
+
+  async getCustomers(userId: number): Promise<Customer[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<Customer>(
+      'SELECT * FROM customers WHERE user_id = ? AND is_active = 1 ORDER BY name ASC',
+      [userId]
+    );
+  }
+
+  async getTransactionsByVehicle(vehicleId: number): Promise<VehicleTransaction[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<VehicleTransaction>(
+      'SELECT * FROM vehicle_transactions WHERE vehicle_id = ?',
+      [vehicleId]
+    );
+  }
+
+  async getIncomesByTransaction(transactionId: number): Promise<Income[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<Income>(
+      'SELECT * FROM incomes WHERE transaction_id = ?',
+      [transactionId]
+    );
+  }
+
+
+  async getExpensesByTransaction(transactionId: number): Promise<Expense[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<Expense>(
+      'SELECT * FROM expenses WHERE transaction_id = ?',
+      [transactionId]
+    );
+  }
+
+  async deleteTransaction(id: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      'DELETE FROM vehicle_transactions WHERE id = ?',
+      [id]
+    );
+  }
+
+  async deleteExpense(id: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      'DELETE FROM expenses WHERE id = ?',
+      [id]
+    );
+  }
+
+  async deleteIncome(id: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      'DELETE FROM incomes WHERE id = ?',
+      [id]
+    );
+  }
+
   async clearAllData(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 

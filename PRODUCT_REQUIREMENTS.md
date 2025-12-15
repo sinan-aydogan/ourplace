@@ -6,6 +6,7 @@ A cross-platform mobile application (iOS, Android, Web) built with Expo, React N
 ## Tech Stack
 - **Framework**: Expo with React Native
 - **UI Library**: Gluestack UI (use MCP tools to discover components)
+- **Dropdown/MultiSelect**: react-native-element-dropdown (for advanced dropdown and multiselect functionality)
 - **Navigation**: Expo Router (file-based routing)
 - **Styling**: Tailwind CSS via NativeWind
 - **Language**: TypeScript
@@ -20,6 +21,27 @@ Use Gluestack MCP tools to explore and implement UI components:
 - `get_selected_components_docs` - Get detailed documentation
 
 All components are available in `/components/ui/` directory.
+
+### MultiSelect Component Guidelines
+**For all multiselect functionality, use `react-native-element-dropdown`:**
+- Import: `import { MultiSelect } from 'react-native-element-dropdown';`
+- Provides native multiselect with checkbox support
+- Customizable styling to match Gluestack UI theme
+- Built-in search functionality
+- Selected items displayed as chips/tags
+- TypeScript support with proper type definitions
+
+**Key Props:**
+- `data`: Array of items `{ label: string, value: any }`
+- `labelField`: Field name for display text (default: 'label')
+- `valueField`: Field name for unique identifier (default: 'value')
+- `value`: Array of selected values (controlled component)
+- `onChange`: Callback with array of selected values
+- `search`: Enable/disable search input
+- `placeholder`: Placeholder text
+- `maxSelect`: Maximum number of items that can be selected
+- `selectedStyle`: Style for selected item chips
+- `activeColor`: Background color for selected items
 
 ---
 
@@ -616,22 +638,45 @@ const defaultLanguage = supportedLanguages.includes(deviceLanguage)
    - Maintain consistency across the app
    - Leverage built-in accessibility features
 
-2. **Responsive Design:**
+2. **MultiSelect Components:**
+   - **ALWAYS use `react-native-element-dropdown` MultiSelect for category/tag selection**
+   - Example use cases: expense categories, income categories, vehicle types, custom filters
+   - Benefits: Clean UI, search functionality, selected items displayed as chips
+   - Styling should match Gluestack UI theme (colors, fonts, spacing)
+   - Example implementation:
+     ```typescript
+     import { MultiSelect } from 'react-native-element-dropdown';
+     
+     <MultiSelect
+       data={categories}
+       labelField="name"
+       valueField="id"
+       placeholder="Select categories"
+       value={selectedCategories}
+       onChange={(items) => setSelectedCategories(items)}
+       search
+       searchPlaceholder="Search..."
+       selectedStyle={{ borderRadius: 12 }}
+       activeColor="#e0f2fe"
+     />
+     ```
+
+3. **Responsive Design:**
    - Mobile-first approach
    - Support both portrait and landscape
    - Tablet-friendly layouts
 
-3. **Loading States:**
+4. **Loading States:**
    - Show spinners for async operations
    - Skeleton screens for data loading
    - Optimistic UI updates where possible
 
-4. **Error Handling:**
+5. **Error Handling:**
    - User-friendly error messages
    - Validation feedback
    - Toast notifications for success/error
 
-5. **Empty States:**
+6. **Empty States:**
    - Helpful messages with clear CTAs
    - Illustrations or icons
    - Guide users to first action
@@ -737,9 +782,13 @@ WHERE vehicle_id = ?
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-01-02  
+**Document Version:** 1.1  
+**Last Updated:** 2025-12-08  
 **Status:** Ready for Development
+
+**Changelog:**
+- v1.1 (2025-12-08): Added react-native-element-dropdown for MultiSelect functionality
+- v1.0 (2025-01-02): Initial version
 
 ---
 

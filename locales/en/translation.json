@@ -15,6 +15,13 @@
     "sort": "Sort",
     "required": "Required"
   },
+  "navigation": {
+    "home": "Home",
+    "reports": "Reports",
+    "expenses": "Expenses",
+    "incomes": "Incomes",
+    "settings": "Settings"
+  },
   "vehicles": {
     "title": "My Vehicles",
     "addNew": "Add New Vehicle",
@@ -32,10 +39,13 @@
     "saleDate": "Sale Date",
     "salePrice": "Sale Price",
     "vehicleImage": "Vehicle Image",
+    "addPhoto": "Tap to add photo",
+    "removePhoto": "Remove Photo",
     "selectVehicle": "Select Vehicle",
     "noVehicles": "No vehicles found",
     "firstVehiclePrompt": "Let's register your first vehicle!",
-    "deleteConfirm": "Are you sure you want to delete this vehicle?"
+    "deleteConfirm": "Are you sure you want to delete this vehicle?",
+    "deleteConfirmMessage": "This action will delete the vehicle and all its transactions. This cannot be undone."
   },
   "fuelTypes": {
     "gasoline": "Gasoline",
@@ -47,13 +57,17 @@
   "transactions": {
     "title": "Transactions",
     "addTransaction": "Add Transaction",
+    "editTransaction": "Edit Transaction",
     "recentTransactions": "Recent Transactions",
     "amount": "Amount",
     "currency": "Currency",
+    "exchangeRate": "Exchange Rate (1 {{currency}} = ? {{defaultCurrency}})",
     "date": "Date",
     "description": "Description",
     "type": "Type",
-    "odometerReading": "Odometer Reading",
+    "odometerReading": "Odometer Reading (km)",
+    "startOdometer": "Start KM",
+    "endOdometer": "End KM",
     "loadMore": "Load More",
     "noTransactions": "No transactions found"
   },
@@ -64,7 +78,21 @@
     "expenseType": "Expense Type",
     "customExpenseType": "Custom Expense Type",
     "notes": "Notes",
-    "totalExpenses": "Total Expenses"
+    "totalExpenses": "Total Expenses",
+    "company": "Company",
+    "energyStation": "Energy Station",
+    "selectCompany": "Select Company",
+    "selectEnergyStation": "Select Energy Station",
+    "addNewCompany": "Add New Company",
+    "addNewEnergyStation": "Add New Station",
+    "lastMonth": "Last Month",
+    "dateRange": "Date Range",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "custom": "Custom",
+    "includeFuel": "Include Fuel Expenses",
+    "categories": "Expense Categories"
   },
   "incomes": {
     "title": "Incomes",
@@ -72,7 +100,17 @@
     "incomeType": "Income Type",
     "customIncomeType": "Custom Income Type",
     "notes": "Notes",
-    "totalIncome": "Total Income"
+    "totalIncome": "Total Income",
+    "customer": "Customer",
+    "selectCustomer": "Select Customer",
+    "addNewCustomer": "Add New Customer",
+    "lastMonth": "Last Month",
+    "dateRange": "Date Range",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "custom": "Custom",
+    "categories": "Income Categories"
   },
   "statistics": {
     "title": "Statistics",
@@ -100,7 +138,9 @@
     "subscription": "Subscription",
     "currentPlan": "Current Plan",
     "upgrade": "Upgrade",
-    "features": "Features"
+    "features": "Features",
+    "defaultCurrency": "Default Currency",
+    "currencyUpdated": "Default currency updated successfully"
   },
   "subscription": {
     "free": "Free",
@@ -126,7 +166,10 @@
     "invalidNumber": "Invalid number",
     "invalidDate": "Invalid date",
     "minLength": "Minimum {{min}} characters required",
-    "maxLength": "Maximum {{max}} characters allowed"
+    "maxLength": "Maximum {{max}} characters allowed",
+    "odometerMustBeGreater": "Odometer reading must be greater than the last recorded value ({{lastKm}} km)",
+    "endOdometerMustBeGreater": "End odometer must be greater than start odometer",
+    "startOdometerMustBeGreater": "Start odometer must be greater than the last recorded end odometer ({{lastKm}} km)"
   },
   "messages": {
     "vehicleAdded": "Vehicle added successfully",
@@ -135,6 +178,25 @@
     "transactionAdded": "Transaction added successfully",
     "expenseAdded": "Expense added successfully",
     "incomeAdded": "Income added successfully",
-    "upgradRequired": "This feature requires Basic plan"
+    "upgradRequired": "This feature requires Basic plan",
+    "companyAdded": "Company added successfully",
+    "customerAdded": "Customer added successfully",
+    "energyStationAdded": "Energy station added successfully"
+  },
+  "sources": {
+    "companyName": "Company Name",
+    "customerName": "Customer Name",
+    "stationName": "Station Name",
+    "geoCoordinate": "Location (lat,lng)",
+    "addCompany": "Add Company",
+    "addCustomer": "Add Customer",
+    "addEnergyStation": "Add Energy Station"
+  },
+  "fuel": {
+    "distance": "Distance",
+    "costPerKm": "Cost/km",
+    "consumption": "Consumption",
+    "litersPer100km": "L/100km",
+    "unitPrice": "Unit Price (per liter)"
   }
 }

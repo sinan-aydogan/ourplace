@@ -17,6 +17,7 @@ interface AppContextType {
   // User
   user: User | null;
   setUser: (user: User | null) => void;
+  refreshUser: () => Promise<void>;
   
   // Theme
   themeMode: ThemeMode;
@@ -169,9 +170,23 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    if (!user) return;
+    
+    try {
+      const updatedUser = await db.getUser(user.id);
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   const value: AppContextType = {
     user,
     setUser,
+    refreshUser,
     themeMode,
     colorScheme,
     setThemeMode,
