@@ -559,6 +559,58 @@ class DatabaseService {
     );
   }
 
+  // Source operations
+  async createEnergyStation(input: { user_id: number; name: string; geo_coordinate?: string | null }): Promise<EnergyStation> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.runAsync(
+      'INSERT INTO energy_stations (user_id, name, geo_coordinate, is_active) VALUES (?, ?, ?, 1)',
+      [input.user_id, input.name, input.geo_coordinate || null]
+    );
+
+    const station = await this.db.getFirstAsync<EnergyStation>(
+      'SELECT * FROM energy_stations WHERE id = ?',
+      [result.lastInsertRowId]
+    );
+
+    if (!station) throw new Error('Failed to create energy station');
+    return station;
+  }
+
+  async createCompany(input: { user_id: number; name: string; geo_coordinate?: string | null }): Promise<Company> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.runAsync(
+      'INSERT INTO companies (user_id, name, geo_coordinate, is_active) VALUES (?, ?, ?, 1)',
+      [input.user_id, input.name, input.geo_coordinate || null]
+    );
+
+    const company = await this.db.getFirstAsync<Company>(
+      'SELECT * FROM companies WHERE id = ?',
+      [result.lastInsertRowId]
+    );
+
+    if (!company) throw new Error('Failed to create company');
+    return company;
+  }
+
+  async createCustomer(input: { user_id: number; name: string; geo_coordinate?: string | null }): Promise<Customer> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.runAsync(
+      'INSERT INTO customers (user_id, name, geo_coordinate, is_active) VALUES (?, ?, ?, 1)',
+      [input.user_id, input.name, input.geo_coordinate || null]
+    );
+
+    const customer = await this.db.getFirstAsync<Customer>(
+      'SELECT * FROM customers WHERE id = ?',
+      [result.lastInsertRowId]
+    );
+
+    if (!customer) throw new Error('Failed to create customer');
+    return customer;
+  }
+
   async getEnergyStations(userId: number): Promise<EnergyStation[]> {
     if (!this.db) throw new Error('Database not initialized');
     return await this.db.getAllAsync<EnergyStation>(
@@ -629,6 +681,35 @@ class DatabaseService {
     await this.db.runAsync(
       'DELETE FROM incomes WHERE id = ?',
       [id]
+    );
+  }
+
+  async getLastFuelTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getFirstAsync<TransactionWithDetails>(
+      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name
+       FROM vehicle_transactions vt
+       LEFT JOIN expense_types et ON vt.expense_type_id = et.id
+       LEFT JOIN income_types it ON vt.income_type_id = it.id
+       WHERE vt.vehicle_id = ? AND vt.transaction_type = 'expense' 
+       AND (et.name LIKE '%fuel%' OR et.name LIKE '%yakıt%' OR LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
+       ORDER BY vt.transaction_date DESC, vt.created_at DESC
+       LIMIT 1`,
+      [vehicleId]
+    );
+  }
+
+  async getLastIncomeTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getFirstAsync<TransactionWithDetails>(
+      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name
+       FROM vehicle_transactions vt
+       LEFT JOIN expense_types et ON vt.expense_type_id = et.id
+       LEFT JOIN income_types it ON vt.income_type_id = it.id
+       WHERE vt.vehicle_id = ? AND vt.transaction_type = 'income'
+       ORDER BY vt.transaction_date DESC, vt.created_at DESC
+       LIMIT 1`,
+      [vehicleId]
     );
   }
 

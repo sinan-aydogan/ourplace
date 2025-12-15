@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Icon, ChevronDownIcon } from '@/components/ui/icon';
 import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@/components/ui/checkbox';
-import { CheckIcon, MoreVertical } from 'lucide-react-native';
+import { CheckIcon, MoreVertical, Plus, Minus } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import { AddSourceModal } from '@/components/AddSourceModal';
@@ -52,6 +52,8 @@ export default function IncomesPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [lastIncome, setLastIncome] = useState<TransactionWithDetails | null>(null);
+  const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   
   // Filter states
   const [dateFilter, setDateFilter] = useState<'weekly' | 'monthly' | 'yearly' | 'custom'>('monthly');
@@ -212,6 +214,19 @@ export default function IncomesPage() {
       } else {
         setAllIncomes(incomeTransactions);
       }
+      
+      // Load last transactions to determine latest odometer for placeholder
+      const [lastInc, lastFuel] = await Promise.all([
+        db.getLastIncomeTransaction(selectedVehicle.id),
+        db.getLastFuelTransaction(selectedVehicle.id)
+      ]);
+      setLastIncome(lastInc);
+
+      const lastIncomeOdo = lastInc?.end_odometer ?? null;
+      const lastFuelOdo = lastFuel?.odometer_reading ?? null;
+      const candidates = [lastIncomeOdo, lastFuelOdo].filter(v => v !== null) as number[];
+      const latestOdo = candidates.length ? Math.max(...candidates) : null;
+      setLastOdometer(latestOdo);
       
       setShowMore(incomeTransactions.length === 100);
     } catch (error) {
@@ -403,7 +418,7 @@ export default function IncomesPage() {
                 </VStack>
 
                 {/* Customer Selection */}
-                <HStack space="sm">
+                <HStack space="sm" alignItems="center">
                   <VStack space="xs" className="flex-1">
                     <Text className="font-semibold text-sm text-typography-700">{t('incomes.customer')}</Text>
                     <Select
@@ -440,39 +455,97 @@ export default function IncomesPage() {
                     size="md"
                     variant="outline"
                     onPress={() => setShowCustomerModal(true)}
-                    className="mt-5 w-12 h-12 rounded-xl"
+                    className="rounded-full h-6 w-6 p-0 flex-none -mb-6"
                   >
-                    <ButtonText className="text-xl">+</ButtonText>
+                    <ButtonIcon as={Plus} size={12} />
                   </Button>
                 </HStack>
 
                 {/* Start & End Odometer */}
-                <HStack space="sm">
-                  <VStack space="xs" className="flex-1">
-                    <Text className="font-semibold text-sm text-typography-700">{t('transactions.startOdometer')}</Text>
-                    <Input variant="outline" className="border-2 border-background-200 rounded-xl">
-                      <InputField
-                        placeholder="0"
-                        value={startOdometer}
-                        onChangeText={setStartOdometer}
-                        keyboardType="numeric"
-                        className="text-base"
-                      />
-                    </Input>
-                  </VStack>
-                  <VStack space="xs" className="flex-1">
-                    <Text className="font-semibold text-sm text-typography-700">{t('transactions.endOdometer')}</Text>
-                    <Input variant="outline" className="border-2 border-background-200 rounded-xl">
-                      <InputField
-                        placeholder="0"
-                        value={endOdometer}
-                        onChangeText={setEndOdometer}
-                        keyboardType="numeric"
-                        className="text-base"
-                      />
-                    </Input>
-                  </VStack>
-                </HStack>
+                <VStack space="sm">
+                  <HStack space="sm" alignItems="center">
+                    <Text className="font-semibold text-sm text-typography-700 w-24">{t('transactions.startOdometer')}</Text>
+                    <VStack className="flex-1">
+                      <Input variant="outline" className={`border-2 rounded-xl ${startOdometer && lastOdometer !== null && parseInt(startOdometer) < lastOdometer ? 'border-error-500' : 'border-background-200'}`}>
+                        <InputField
+                          placeholder={lastOdometer !== null ? `>${lastOdometer.toLocaleString()}` : '0'}
+                          value={startOdometer}
+                          onChangeText={setStartOdometer}
+                          keyboardType="numeric"
+                          className="text-base"
+                        />
+                      </Input>
+                      {startOdometer && lastOdometer !== null && parseInt(startOdometer) < lastOdometer && (
+                        <Text className="text-error-500 text-xs mt-1">Son km'den daha küçük olamaz</Text>
+                      )}
+                    </VStack>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onPress={() => {
+                        const currentValue = startOdometer ? parseInt(startOdometer) : (lastIncome?.end_odometer || 0);
+                        setStartOdometer((currentValue + 100).toString());
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none"
+                    >
+                      <ButtonIcon as={Plus} size={12} />
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      isDisabled={!startOdometer || (lastIncome?.end_odometer && parseInt(startOdometer) - 100 <= lastIncome.end_odometer)}
+                      onPress={() => {
+                        const currentValue = parseInt(startOdometer);
+                        if (currentValue > 100) {
+                          setStartOdometer((currentValue - 100).toString());
+                        }
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none"
+                    >
+                      <ButtonIcon as={Minus} size={12} />
+                    </Button>
+                  </HStack>
+
+                  <HStack space="sm" alignItems="center">
+                    <Text className="font-semibold text-sm text-typography-700 w-24">{t('transactions.endOdometer')}</Text>
+                    <VStack className="flex-1">
+                      <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                        <InputField
+                          placeholder={startOdometer ? `>${(parseInt(startOdometer) + 100).toLocaleString()}` : '0'}
+                          value={endOdometer}
+                          onChangeText={setEndOdometer}
+                          keyboardType="numeric"
+                          className="text-base"
+                        />
+                      </Input>
+                    </VStack>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onPress={() => {
+                        const currentValue = endOdometer ? parseInt(endOdometer) : (startOdometer ? parseInt(startOdometer) + 100 : 0);
+                        setEndOdometer((currentValue + 100).toString());
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none"
+                    >
+                      <ButtonIcon as={Plus} size={12} />
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      isDisabled={!endOdometer || !startOdometer || parseInt(endOdometer) - 100 <= parseInt(startOdometer)}
+                      onPress={() => {
+                        const currentValue = parseInt(endOdometer);
+                        if (currentValue > 100 && parseInt(currentValue - 100) > parseInt(startOdometer)) {
+                          setEndOdometer((currentValue - 100).toString());
+                        }
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none"
+                    >
+                      <ButtonIcon as={Minus} size={12} />
+                    </Button>
+                  </HStack>
+                </VStack>
 
                 <Input variant="outline" className="border-2 border-background-200 rounded-xl">
                   <InputField

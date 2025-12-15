@@ -32,6 +32,7 @@ import {
   ModalFooter,
 } from '@/components/ui/modal';
 import { ChevronDownIcon, CloseIcon, Icon } from '@/components/ui/icon';
+import { Plus, Minus } from 'lucide-react-native';
 import { Card } from '@/components/ui/card';
 import { Fab, FabIcon } from '@/components/ui/fab';
 import { MenuIcon } from '@/components/ui/icon';
@@ -67,6 +68,7 @@ export default function Home() {
   const [editFuelUnitPrice, setEditFuelUnitPrice] = useState('');
   const [editCurrency, setEditCurrency] = useState('');
   const [editExchangeRate, setEditExchangeRate] = useState('');
+  const [lastFuelTransaction, setLastFuelTransaction] = useState<TransactionWithDetails | null>(null);
 
   useEffect(() => {
     loadCurrencies();
@@ -111,6 +113,10 @@ export default function Home() {
       } else {
         setTransactions(newTransactions);
       }
+      
+      // Load last fuel transaction for odometer placeholder
+      const lastFuel = await db.getLastFuelTransaction(selectedVehicle.id);
+      setLastFuelTransaction(lastFuel);
       
       setShowMore(newTransactions.length === 5);
     } catch (error) {
@@ -511,15 +517,48 @@ export default function Home() {
                   />
                 </Input>
 
-                <Input variant="outline" className="border-2 border-background-200 rounded-xl">
-                  <InputField
-                    placeholder={t('transactions.odometerReading')}
-                    value={odometer}
-                    onChangeText={setOdometer}
-                    keyboardType="numeric"
-                    className="text-base"
-                  />
-                </Input>
+                {/* Odometer Reading with +/- buttons */}
+                <HStack space="sm" alignItems="center">
+                  <VStack className="flex-1">
+                    <Input variant="outline" className={`border-2 rounded-xl ${odometer && lastFuelTransaction?.odometer_reading && parseInt(odometer) < lastFuelTransaction.odometer_reading ? 'border-error-500' : 'border-background-200'}`}>
+                      <InputField
+                        placeholder={lastFuelTransaction?.odometer_reading ? `>${lastFuelTransaction.odometer_reading.toLocaleString()}` : t('transactions.odometerReading')}
+                        value={odometer}
+                        onChangeText={setOdometer}
+                        keyboardType="numeric"
+                        className="text-base"
+                      />
+                    </Input>
+                    {odometer && lastFuelTransaction?.odometer_reading && parseInt(odometer) < lastFuelTransaction.odometer_reading && (
+                      <Text className="text-error-500 text-xs mt-1">Son km'den daha küçük olamaz</Text>
+                    )}
+                  </VStack>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onPress={() => {
+                      const currentValue = odometer ? parseInt(odometer) : (lastFuelTransaction?.odometer_reading || 0);
+                      setOdometer((currentValue + 100).toString());
+                    }}
+                    className="rounded-full h-6 w-6 p-0 flex-none"
+                  >
+                    <ButtonIcon as={Plus} size={12} />
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    isDisabled={!odometer || (lastFuelTransaction?.odometer_reading && parseInt(odometer) - 100 <= lastFuelTransaction.odometer_reading)}
+                    onPress={() => {
+                      const currentValue = parseInt(odometer);
+                      if (currentValue > 100) {
+                        setOdometer((currentValue - 100).toString());
+                      }
+                    }}
+                    className="rounded-full h-6 w-6 p-0 flex-none"
+                  >
+                    <ButtonIcon as={Minus} size={12} />
+                  </Button>
+                </HStack>
 
                 <Input variant="outline" className="border-2 border-background-200 rounded-xl">
                   <InputField
