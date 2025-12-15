@@ -26,10 +26,11 @@ import {
 } from '@/components/ui/select';
 import { Icon, ChevronDownIcon } from '@/components/ui/icon';
 import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@/components/ui/checkbox';
-import { CheckIcon, MoreVertical, Plus, Minus } from 'lucide-react-native';
+import { CheckIcon, MoreVertical, Plus, Minus, Edit2 } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import { AddSourceModal } from '@/components/AddSourceModal';
+import { IncomeTypeModal } from '@/components/IncomeTypeModal';
 import type { TransactionWithDetails, IncomeType, Customer, Currency } from '@/types/database';
 
 export default function IncomesPage() {
@@ -62,6 +63,8 @@ export default function IncomesPage() {
   const [customEndDate, setCustomEndDate] = useState<Date | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showIncomeTypeModal, setShowIncomeTypeModal] = useState(false);
+  const [editingIncomeType, setEditingIncomeType] = useState<IncomeType | null>(null);
 
   // Helper: Get date range based on filter
   const getDateRange = () => {
@@ -393,35 +396,66 @@ export default function IncomesPage() {
                 {/* Income Type */}
                 <VStack space="xs">
                   <Text className="font-semibold text-sm text-typography-700">{t('incomes.incomeType')} *</Text>
-                  <Select
-                    selectedValue={selectedIncomeType?.toString() || ''}
-                    onValueChange={(value) => setSelectedIncomeType(parseInt(value))}
-                  >
-                    <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                      <SelectInput 
-                        placeholder={t('incomes.incomeType')}
-                        value={incomeTypes.find(t => t.id === selectedIncomeType)?.name}
-                        className="text-base"
-                      />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent className="max-h-[60vh]">
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectScrollView>
-                          {incomeTypes.map((type) => (
-                            <SelectItem
-                              key={type.id}
-                              label={type.name}
-                              value={type.id.toString()}
-                            />
-                          ))}
-                        </SelectScrollView>
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                  <HStack space="sm" className="items-center">
+                    <VStack className="flex-1">
+                      <Select
+                        selectedValue={selectedIncomeType?.toString() || ''}
+                        onValueChange={(value) => setSelectedIncomeType(parseInt(value))}
+                      >
+                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
+                          <SelectInput 
+                            placeholder={t('incomes.incomeType')}
+                            value={incomeTypes.find(t => t.id === selectedIncomeType)?.name}
+                            className="text-base"
+                          />
+                        </SelectTrigger>
+                        <SelectPortal>
+                          <SelectBackdrop />
+                          <SelectContent className="max-h-[60vh]">
+                            <SelectDragIndicatorWrapper>
+                              <SelectDragIndicator />
+                            </SelectDragIndicatorWrapper>
+                            <SelectScrollView>
+                              {incomeTypes.map((type) => (
+                                <SelectItem
+                                  key={type.id}
+                                  label={type.name}
+                                  value={type.id.toString()}
+                                />
+                              ))}
+                            </SelectScrollView>
+                          </SelectContent>
+                        </SelectPortal>
+                      </Select>
+                    </VStack>
+                    {selectedIncomeType && (
+                      <Button
+                        size="md"
+                        variant="outline"
+                        onPress={() => {
+                          const type = incomeTypes.find(t => t.id === selectedIncomeType);
+                          if (type) {
+                            setEditingIncomeType(type);
+                            setShowIncomeTypeModal(true);
+                          }
+                        }}
+                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                      >
+                        <ButtonIcon as={Edit2} size="xs" />
+                      </Button>
+                    )}
+                    <Button
+                      size="md"
+                      variant="outline"
+                      onPress={() => {
+                        setEditingIncomeType(null);
+                        setShowIncomeTypeModal(true);
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                    >
+                      <ButtonIcon as={Plus} size="xs" />
+                    </Button>
+                  </HStack>
                 </VStack>
 
                 {/* Customer Selection */}
@@ -794,6 +828,27 @@ export default function IncomesPage() {
         onSuccess={(customer) => {
           loadCustomers();
           setSelectedCustomer(customer.id);
+        }}
+      />
+      
+      {/* Income Type Modal */}
+      <IncomeTypeModal
+        isOpen={showIncomeTypeModal}
+        onClose={() => {
+          setShowIncomeTypeModal(false);
+          setEditingIncomeType(null);
+        }}
+        editingType={editingIncomeType}
+        onSuccess={async () => {
+          await loadIncomeTypes();
+          if (editingIncomeType && selectedIncomeType === editingIncomeType.id) {
+            // Reload the type to get updated name
+            const updatedTypes = await db.getIncomeTypes(user?.id);
+            const updated = updatedTypes.find(t => t.id === editingIncomeType.id);
+            if (updated) {
+              setSelectedIncomeType(updated.id);
+            }
+          }
         }}
       />
     </SafeAreaView>

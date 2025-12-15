@@ -103,6 +103,9 @@
     "recentIncome": "Recent Income",
     "addIncome": "Add Income",
     "incomeType": "Income Type",
+    "incomeTypeName": "Income Type Name",
+    "addIncomeType": "Add Income Type",
+    "editIncomeType": "Edit Income Type",
     "customIncomeType": "Custom Income Type",
     "notes": "Notes",
     "totalIncome": "Total Income",
@@ -190,7 +193,11 @@
     "upgradRequired": "This feature requires Basic plan",
     "companyAdded": "Company added successfully",
     "customerAdded": "Customer added successfully",
-    "energyStationAdded": "Energy station added successfully"
+    "energyStationAdded": "Energy station added successfully",
+    "incomeTypeAdded": "Income type added successfully",
+    "incomeTypeUpdated": "Income type updated successfully",
+    "incomeTypeDeleted": "Income type deleted successfully",
+    "deleteIncomeTypeConfirm": "Are you sure you want to delete this income type? If there are income records with this type, it will be deactivated. Otherwise, it will be completely deleted."
   },
   "sources": {
     "companyName": "Company Name",

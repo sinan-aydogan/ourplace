@@ -11,7 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Slot } from 'expo-router';
 import { AppProvider, useApp } from '@/contexts/AppContext';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -25,6 +25,29 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+
+  // Handle unhandled promise rejections (like keep awake errors)
+  useEffect(() => {
+    // Web platform - handle unhandled promise rejections
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        const errorMessage = event.reason?.message || String(event.reason || '');
+        // Ignore keep awake errors (harmless web platform warnings)
+        if (errorMessage?.includes('keep awake') || errorMessage?.includes('keep-awake')) {
+          event.preventDefault();
+          return;
+        }
+      };
+
+      if (window.addEventListener) {
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+        
+        return () => {
+          window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+      }
+    }
+  }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
