@@ -31,10 +31,11 @@ import {
 } from '@/components/ui/menu';
 import { Icon, ChevronDownIcon } from '@/components/ui/icon';
 import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@/components/ui/checkbox';
-import { CheckIcon, MoreVertical, Plus, Minus } from 'lucide-react-native';
+import { CheckIcon, MoreVertical, Plus, Minus, Edit2 } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import { AddSourceModal } from '@/components/AddSourceModal';
+import { ExpenseTypeModal } from '@/components/ExpenseTypeModal';
 import type { TransactionWithDetails, ExpenseType, EnergyStation, Company, Currency } from '@/types/database';
 
 export default function ExpensesPage() {
@@ -60,6 +61,8 @@ export default function ExpensesPage() {
   const [showMore, setShowMore] = useState(false);
   const [showStationModal, setShowStationModal] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [showExpenseTypeModal, setShowExpenseTypeModal] = useState(false);
+  const [editingExpenseType, setEditingExpenseType] = useState<ExpenseType | null>(null);
   
   // Filter states
   const [dateFilter, setDateFilter] = useState<'weekly' | 'monthly' | 'yearly' | 'custom'>('monthly');
@@ -394,35 +397,66 @@ export default function ExpensesPage() {
                 {/* Expense Type */}
                 <VStack space="xs">
                   <Text className="font-semibold text-sm text-typography-700">{t('expenses.expenseType')} *</Text>
-                  <Select
-                    selectedValue={selectedExpenseType?.toString() || ''}
-                    onValueChange={(value) => setSelectedExpenseType(parseInt(value))}
-                  >
-                    <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                      <SelectInput 
-                        placeholder={t('expenses.expenseType')}
-                        value={expenseTypes.find(t => t.id === selectedExpenseType)?.name}
-                        className="text-base"
-                      />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent className="max-h-[60vh]">
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectScrollView>
-                          {expenseTypes.map((type) => (
-                            <SelectItem
-                              key={type.id}
-                              label={type.name}
-                              value={type.id.toString()}
-                            />
-                          ))}
-                        </SelectScrollView>
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                  <HStack space="sm" className="items-center">
+                    <VStack className="flex-1">
+                      <Select
+                        selectedValue={selectedExpenseType?.toString() || ''}
+                        onValueChange={(value) => setSelectedExpenseType(parseInt(value))}
+                      >
+                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
+                          <SelectInput 
+                            placeholder={t('expenses.expenseType')}
+                            value={expenseTypes.find(t => t.id === selectedExpenseType)?.name}
+                            className="text-base"
+                          />
+                        </SelectTrigger>
+                        <SelectPortal>
+                          <SelectBackdrop />
+                          <SelectContent className="max-h-[60vh]">
+                            <SelectDragIndicatorWrapper>
+                              <SelectDragIndicator />
+                            </SelectDragIndicatorWrapper>
+                            <SelectScrollView>
+                              {expenseTypes.map((type) => (
+                                <SelectItem
+                                  key={type.id}
+                                  label={type.name}
+                                  value={type.id.toString()}
+                                />
+                              ))}
+                            </SelectScrollView>
+                          </SelectContent>
+                        </SelectPortal>
+                      </Select>
+                    </VStack>
+                    {selectedExpenseType && (
+                      <Button
+                        size="md"
+                        variant="outline"
+                        onPress={() => {
+                          const type = expenseTypes.find(t => t.id === selectedExpenseType);
+                          if (type) {
+                            setEditingExpenseType(type);
+                            setShowExpenseTypeModal(true);
+                          }
+                        }}
+                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                      >
+                        <ButtonIcon as={Edit2} size="xs" />
+                      </Button>
+                    )}
+                    <Button
+                      size="md"
+                      variant="outline"
+                      onPress={() => {
+                        setEditingExpenseType(null);
+                        setShowExpenseTypeModal(true);
+                      }}
+                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                    >
+                      <ButtonIcon as={Plus} size="xs" />
+                    </Button>
+                  </HStack>
                 </VStack>
 
                 {/* Energy Station (for fuel) or Company */}
@@ -835,6 +869,22 @@ export default function ExpensesPage() {
         onSuccess={(company) => {
           loadCompanies();
           setSelectedCompany(company.id);
+        }}
+      />
+
+      <ExpenseTypeModal
+        isOpen={showExpenseTypeModal}
+        onClose={() => {
+          setShowExpenseTypeModal(false);
+          setEditingExpenseType(null);
+        }}
+        editingType={editingExpenseType}
+        onSuccess={async (createdType) => {
+          await loadExpenseTypes();
+          // If a new type was created, select it
+          if (createdType && !editingExpenseType) {
+            setSelectedExpenseType(createdType.id);
+          }
         }}
       />
     </SafeAreaView>

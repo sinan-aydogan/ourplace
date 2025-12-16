@@ -839,9 +839,12 @@ export default function IncomesPage() {
           setEditingIncomeType(null);
         }}
         editingType={editingIncomeType}
-        onSuccess={async () => {
+        onSuccess={async (createdType) => {
           await loadIncomeTypes();
-          if (editingIncomeType && selectedIncomeType === editingIncomeType.id) {
+          if (createdType && !editingIncomeType) {
+            // If a new type was created, select it
+            setSelectedIncomeType(createdType.id);
+          } else if (editingIncomeType && selectedIncomeType === editingIncomeType.id) {
             // Reload the type to get updated name
             const updatedTypes = await db.getIncomeTypes(user?.id);
             const updated = updatedTypes.find(t => t.id === editingIncomeType.id);

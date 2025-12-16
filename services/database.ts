@@ -12,6 +12,7 @@ import type {
   CreateTransactionInput,
   CreateExpenseInput,
   CreateIncomeInput,
+  CreateExpenseTypeInput,
   CreateIncomeTypeInput,
   UpdateVehicleInput,
   VehicleWithBrand,
@@ -587,6 +588,74 @@ class DatabaseService {
 
     return await this.db.getAllAsync<ExpenseType>(
       'SELECT * FROM expense_types WHERE is_custom = 0 AND is_active = 1 ORDER BY name ASC'
+    );
+  }
+
+  async createExpenseType(input: CreateExpenseTypeInput): Promise<ExpenseType> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.runAsync(
+      'INSERT INTO expense_types (name, is_custom, user_id, is_active) VALUES (?, 1, ?, 1)',
+      [input.name, input.user_id]
+    );
+
+    const expenseType = await this.db.getFirstAsync<ExpenseType>(
+      'SELECT * FROM expense_types WHERE id = ?',
+      [result.lastInsertRowId]
+    );
+
+    if (!expenseType) throw new Error('Failed to create expense type');
+    return expenseType;
+  }
+
+  async updateExpenseType(id: number, name: string): Promise<ExpenseType> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.runAsync(
+      'UPDATE expense_types SET name = ? WHERE id = ?',
+      [name, id]
+    );
+
+    const expenseType = await this.db.getFirstAsync<ExpenseType>(
+      'SELECT * FROM expense_types WHERE id = ?',
+      [id]
+    );
+
+    if (!expenseType) throw new Error('Expense type not found');
+    return expenseType;
+  }
+
+  async deleteExpenseType(id: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // Check if there are any expenses using this type
+    const expenses = await this.db.getAllAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM expenses WHERE expense_type_id = ?',
+      [id]
+    );
+
+    const hasExpenses = expenses[0]?.count > 0;
+
+    if (hasExpenses) {
+      // Soft delete - set is_active to 0
+      await this.db.runAsync(
+        'UPDATE expense_types SET is_active = 0 WHERE id = ?',
+        [id]
+      );
+    } else {
+      // Hard delete - completely remove
+      await this.db.runAsync(
+        'DELETE FROM expense_types WHERE id = ?',
+        [id]
+      );
+    }
+  }
+
+  async getExpenseTypeById(id: number): Promise<ExpenseType | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getFirstAsync<ExpenseType>(
+      'SELECT * FROM expense_types WHERE id = ?',
+      [id]
     );
   }
 

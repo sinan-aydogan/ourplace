@@ -19,21 +19,21 @@ import { Icon, CloseIcon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { db } from '@/services/database';
 import { useApp } from '@/contexts/AppContext';
-import type { IncomeType } from '@/types/database';
+import type { ExpenseType } from '@/types/database';
 
-interface IncomeTypeModalProps {
+interface ExpenseTypeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  editingType: IncomeType | null;
-  onSuccess: (createdType?: IncomeType) => void;
+  editingType: ExpenseType | null;
+  onSuccess: (createdType?: ExpenseType) => void;
 }
 
-export function IncomeTypeModal({
+export function ExpenseTypeModal({
   isOpen,
   onClose,
   editingType,
   onSuccess,
-}: IncomeTypeModalProps) {
+}: ExpenseTypeModalProps) {
   const { t } = useTranslation();
   const { user } = useApp();
   const [name, setName] = useState('');
@@ -59,25 +59,25 @@ export function IncomeTypeModal({
 
       if (editingType) {
         // Update existing type
-        await db.updateIncomeType(editingType.id, name.trim());
-        Alert.alert(t('common.success'), t('messages.incomeTypeUpdated'));
+        await db.updateExpenseType(editingType.id, name.trim());
+        Alert.alert(t('common.success'), t('messages.expenseTypeUpdated'));
         setName('');
         onSuccess();
         onClose();
       } else {
         // Create new type
-        const createdType = await db.createIncomeType({
+        const createdType = await db.createExpenseType({
           name: name.trim(),
           user_id: user.id,
         });
-        Alert.alert(t('common.success'), t('messages.incomeTypeAdded'));
+        Alert.alert(t('common.success'), t('messages.expenseTypeAdded'));
         setName('');
         onSuccess(createdType);
         onClose();
       }
     } catch (error) {
-      console.error('Failed to save income type:', error);
-      Alert.alert(t('common.error'), 'Failed to save income type');
+      console.error('Failed to save expense type:', error);
+      Alert.alert(t('common.error'), 'Failed to save expense type');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function IncomeTypeModal({
 
     Alert.alert(
       t('common.delete'),
-      t('messages.deleteIncomeTypeConfirm'),
+      t('messages.deleteExpenseTypeConfirm'),
       [
         {
           text: t('common.cancel'),
@@ -100,13 +100,13 @@ export function IncomeTypeModal({
           onPress: async () => {
             try {
               setDeleting(true);
-              await db.deleteIncomeType(editingType.id);
-              Alert.alert(t('common.success'), t('messages.incomeTypeDeleted'));
+              await db.deleteExpenseType(editingType.id);
+              Alert.alert(t('common.success'), t('messages.expenseTypeDeleted'));
               onSuccess();
               onClose();
             } catch (error) {
-              console.error('Failed to delete income type:', error);
-              Alert.alert(t('common.error'), 'Failed to delete income type');
+              console.error('Failed to delete expense type:', error);
+              Alert.alert(t('common.error'), 'Failed to delete expense type');
             } finally {
               setDeleting(false);
             }
@@ -123,8 +123,8 @@ export function IncomeTypeModal({
         <ModalHeader>
           <Heading size="md">
             {editingType
-              ? t('incomes.editIncomeType')
-              : t('incomes.addIncomeType')}
+              ? t('expenses.editExpenseType')
+              : t('expenses.addExpenseType')}
           </Heading>
           <ModalCloseButton>
             <Icon as={CloseIcon} />
@@ -133,10 +133,10 @@ export function IncomeTypeModal({
         <ModalBody>
           <VStack space="md">
             <VStack space="xs">
-              <Text className="font-semibold">{t('incomes.incomeTypeName')} *</Text>
+              <Text className="font-semibold">{t('expenses.expenseTypeName')} *</Text>
               <Input>
                 <InputField
-                  placeholder={t('incomes.incomeTypeName')}
+                  placeholder={t('expenses.expenseTypeName')}
                   value={name}
                   onChangeText={setName}
                 />
