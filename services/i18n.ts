@@ -5,22 +5,34 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import en from '@/locales/en/translation.json';
 import tr from '@/locales/tr/translation.json';
+import de from '@/locales/de/translation.json';
+import es from '@/locales/es/translation.json';
+import fr from '@/locales/fr/translation.json';
+import pt from '@/locales/pt/translation.json';
+import zh from '@/locales/zh/translation.json';
+import it from '@/locales/it/translation.json';
 
 const LANGUAGE_KEY = '@cockpit:language';
 
 const resources = {
   en: { translation: en },
   tr: { translation: tr },
+  de: { translation: de },
+  es: { translation: es },
+  fr: { translation: fr },
+  pt: { translation: pt },
+  zh: { translation: zh },
+  it: { translation: it },
 };
 
-const supportedLanguages = ['en', 'tr'];
+const supportedLanguages = ['en', 'tr', 'de', 'es', 'fr', 'pt', 'zh', 'it'];
 
 const getDeviceLanguage = (): string => {
   try {
     const locale = Localization.getLocales()[0];
     const languageCode = locale?.languageCode || 'en';
     
-    // Check if device language is supported (only en and tr)
+    // Check if device language is supported
     if (supportedLanguages.includes(languageCode)) {
       return languageCode;
     }

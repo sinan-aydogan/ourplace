@@ -79,12 +79,36 @@ export default function SettingsPage() {
     }
   };
 
+  // Her dilin kendi dilindeki adı (native name)
+  const languageNativeNames: Record<string, string> = {
+    en: 'English',
+    tr: 'Türkçe',
+    de: 'Deutsch',
+    es: 'Español',
+    fr: 'Français',
+    pt: 'Português',
+    zh: '中文',
+    it: 'Italiano',
+  };
+
+  // Bayrak emojileri
+  const languageFlags: Record<string, string> = {
+    en: '🇬🇧',
+    tr: '🇹🇷',
+    de: '🇩🇪',
+    es: '🇪🇸',
+    fr: '🇫🇷',
+    pt: '🇵🇹',
+    zh: '🇨🇳',
+    it: '🇮🇹',
+  };
+
   const getLanguageName = (code: string): string => {
-    const languageNames: Record<string, string> = {
-      en: t('settings.english'),
-      tr: t('settings.turkish'),
-    };
-    return languageNames[code] || code.toUpperCase();
+    return languageNativeNames[code] || code.toUpperCase();
+  };
+
+  const getLanguageFlag = (code: string): string => {
+    return languageFlags[code] || '';
   };
 
   return (
@@ -113,7 +137,7 @@ export default function SettingsPage() {
                   <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
                     <SelectInput 
                       placeholder={t('settings.language')}
-                      value={getLanguageName(selectedLanguage)}
+                      value={`${getLanguageFlag(selectedLanguage)} ${getLanguageName(selectedLanguage)}`}
                     />
                     <SelectIcon className="mr-3" as={ChevronDownIcon} />
                   </SelectTrigger>
@@ -126,7 +150,7 @@ export default function SettingsPage() {
                       {supportedLanguages.map((lang) => (
                         <SelectItem
                           key={lang}
-                          label={getLanguageName(lang)}
+                          label={`${getLanguageFlag(lang)} ${getLanguageName(lang)}`}
                           value={lang}
                         />
                       ))}
