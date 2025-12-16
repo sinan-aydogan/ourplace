@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import type {
   Brand,
   Vehicle,
+  VehicleTypeRecord,
   VehicleTransaction,
   ExpenseType,
   IncomeType,
@@ -76,6 +77,24 @@ class DatabaseService {
       INSERT OR IGNORE INTO currencies (code) VALUES ('TRY'), ('USD'), ('EUR');
     `);
 
+    // Vehicle Types table
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS vehicle_types (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name_key TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+
+    // Insert default vehicle types
+    await this.db.execAsync(`
+      INSERT OR IGNORE INTO vehicle_types (id, name_key) VALUES
+      (1, 'car'),
+      (2, 'motorcycle'),
+      (3, 'truck'),
+      (4, 'bus');
+    `);
+
     // Brands table
     await this.db.execAsync(`
       CREATE TABLE IF NOT EXISTS brands (
@@ -91,6 +110,7 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         name TEXT NOT NULL,
+        vehicle_type_id INTEGER NOT NULL DEFAULT 1,
         brand_id INTEGER,
         custom_brand_name TEXT,
         model TEXT,
@@ -109,9 +129,19 @@ class DatabaseService {
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (brand_id) REFERENCES brands(id)
+        FOREIGN KEY (brand_id) REFERENCES brands(id),
+        FOREIGN KEY (vehicle_type_id) REFERENCES vehicle_types(id)
       );
     `);
+
+    // Migration: Add vehicle_type_id column if it doesn't exist
+    try {
+      await this.db.execAsync(`
+        ALTER TABLE vehicles ADD COLUMN vehicle_type_id INTEGER NOT NULL DEFAULT 1;
+      `);
+    } catch (e) {
+      // Column might already exist, ignore
+    }
 
     // Expense Types table
     await this.db.execAsync(`
@@ -408,19 +438,27 @@ class DatabaseService {
   }
 
   // Vehicle operations
+  async getVehicleTypes(): Promise<VehicleTypeRecord[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return await this.db.getAllAsync<VehicleTypeRecord>(
+      'SELECT * FROM vehicle_types ORDER BY id'
+    );
+  }
+
   async createVehicle(input: CreateVehicleInput): Promise<Vehicle> {
     if (!this.db) throw new Error('Database not initialized');
 
     const result = await this.db.runAsync(
       `INSERT INTO vehicles (
-        user_id, name, brand_id, custom_brand_name, model, production_year,
+        user_id, name, vehicle_type_id, brand_id, custom_brand_name, model, production_year,
         license_plate, fuel_type, is_income_generating, purchase_date,
         purchase_price, purchase_currency, sale_date, sale_price,
         sale_currency, image_uri
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         input.user_id,
         input.name,
+        input.vehicle_type_id || 1,
         input.brand_id || null,
         input.custom_brand_name || null,
         input.model || null,
@@ -486,9 +524,11 @@ class DatabaseService {
 
     return await this.db.getFirstAsync<VehicleWithBrand>(
       `SELECT v.*, 
-        COALESCE(b.name, v.custom_brand_name) as brand_name
+        COALESCE(b.name, v.custom_brand_name) as brand_name,
+        vt.name_key as vehicle_type_name_key
       FROM vehicles v
       LEFT JOIN brands b ON v.brand_id = b.id
+      LEFT JOIN vehicle_types vt ON v.vehicle_type_id = vt.id
       WHERE v.id = ?`,
       [id]
     );
@@ -499,9 +539,11 @@ class DatabaseService {
 
     return await this.db.getAllAsync<VehicleWithBrand>(
       `SELECT v.*,
-        COALESCE(b.name, v.custom_brand_name) as brand_name
+        COALESCE(b.name, v.custom_brand_name) as brand_name,
+        vt.name_key as vehicle_type_name_key
       FROM vehicles v
       LEFT JOIN brands b ON v.brand_id = b.id
+      LEFT JOIN vehicle_types vt ON v.vehicle_type_id = vt.id
       WHERE v.user_id = ? AND v.is_active = 1
       ORDER BY v.created_at DESC`,
       [userId]
@@ -961,23 +1003,33 @@ class DatabaseService {
 
   async getLastFuelTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
-    if (!vehicleId) return null;
+    if (!vehicleId || vehicleId <= 0) return null;
     
     try {
-      return await this.db.getFirstAsync<TransactionWithDetails>(
-        `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name,
+      // First, get all expense transactions for this vehicle
+      const transactions = await this.db.getAllAsync<TransactionWithDetails>(
+        `SELECT vt.*, 
+          et.name as expense_type_name, 
+          it.name as income_type_name,
           e.fuel_unit_price as fuel_unit_price
          FROM vehicle_transactions vt
          LEFT JOIN expense_types et ON vt.expense_type_id = et.id
          LEFT JOIN income_types it ON vt.income_type_id = it.id
          LEFT JOIN expenses e ON vt.id = e.transaction_id
-         WHERE vt.vehicle_id = ? AND vt.transaction_type = 'expense' 
-         AND et.name IS NOT NULL
-         AND (et.name LIKE '%fuel%' OR et.name LIKE '%yakıt%' OR LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
-         ORDER BY vt.transaction_date DESC, vt.created_at DESC
-         LIMIT 1`,
+         WHERE vt.vehicle_id = ? 
+         AND vt.transaction_type = 'expense' 
+         ORDER BY vt.transaction_date DESC, vt.created_at DESC`,
         [vehicleId]
       );
+
+      // Filter for fuel transactions in JavaScript to avoid SQL null issues
+      const fuelTransaction = transactions.find(t => {
+        const expenseTypeName = t.expense_type_name || '';
+        const lowerName = expenseTypeName.toLowerCase();
+        return lowerName.includes('fuel') || lowerName.includes('yakıt');
+      });
+
+      return fuelTransaction || null;
     } catch (error) {
       console.error('Failed to get last fuel transaction:', error);
       return null;

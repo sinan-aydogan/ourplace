@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, RefreshControl, ImageBackground } from 'react-native';
+import { ScrollView, RefreshControl, ImageBackground, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -353,94 +353,82 @@ export default function Home() {
       >
         <VStack className="p-4" space="lg">
           {/* Vehicle Header with Image Background */}
-          {selectedVehicle.image_uri ? (
-            <Box className="rounded-2xl overflow-hidden shadow-xl">
-              <ImageBackground
-                source={{ uri: selectedVehicle.image_uri }}
-                style={{ width: '100%', minHeight: 200 }}
-                resizeMode="cover"
-              >
-                {/* Dark overlay for better text readability */}
-                <Box className="bg-black/70 p-6" style={{ minHeight: 200 }}>
-                  <VStack space="md">
-                    <VStack space="xs">
-                      <Text className="text-xs text-white/90 uppercase tracking-wider font-semibold">
-                        {t('vehicles.selectVehicle')}
-                      </Text>
-                      <Heading size="3xl" className="text-white font-bold">
-                        {selectedVehicle.name}
-                      </Heading>
-                    </VStack>
-                    
-                    <VStack space="xs">
-                      {selectedVehicle.brand_name && (
-                        <HStack space="sm" className="items-center">
-                          <Text className="text-lg text-white/95 font-semibold">
-                            {selectedVehicle.brand_name}
-                            {selectedVehicle.model && ` ${selectedVehicle.model}`}
+          {(() => {
+            const getDefaultImage = (vehicleTypeId: number) => {
+              const imageMap: { [key: number]: any } = {
+                1: require('@/assets/images/vehicle_images/car.png'),
+                2: require('@/assets/images/vehicle_images/motorcycle.png'),
+                3: require('@/assets/images/vehicle_images/truck.png'),
+                4: require('@/assets/images/vehicle_images/bus.png'),
+              };
+              return imageMap[vehicleTypeId] || imageMap[1];
+            };
+
+            const imageSource = selectedVehicle.image_uri
+              ? { uri: selectedVehicle.image_uri }
+              : getDefaultImage(selectedVehicle.vehicle_type_id || 1);
+
+            return (
+              <Box className="rounded-2xl overflow-hidden shadow-xl">
+                <ImageBackground
+                  source={imageSource}
+                  style={{ width: '100%', minHeight: 200 }}
+                  resizeMode="cover"
+                >
+                  {/* Dark overlay for better text readability */}
+                  <Box className="bg-black/70 p-6" style={{ minHeight: 200, position: 'relative' }}>
+                    {/* Vehicle Type Badge - Top Right */}
+                    {selectedVehicle.vehicle_type_name_key && (
+                      <Box style={{ position: 'absolute', top: 16, right: 16 }}>
+                        <Box className="bg-primary-500 px-3 py-1.5 rounded-lg">
+                          <Text className="text-xs font-semibold text-white">
+                            {t(`vehicles.vehicleType_${selectedVehicle.vehicle_type_name_key}`)}
                           </Text>
-                          {selectedVehicle.production_year && (
-                            <Text className="text-sm text-white/80">
-                              ({selectedVehicle.production_year})
-                            </Text>
-                          )}
-                        </HStack>
-                      )}
-                      
-                      {selectedVehicle.license_plate && (
-                        <HStack className="items-center mt-2">
-                          <Box className="bg-white px-3 py-1.5 rounded-lg">
-                            <Text className="text-base font-bold text-typography-900 tracking-wider">
-                              {selectedVehicle.license_plate}
-                            </Text>
-                          </Box>
-                        </HStack>
-                      )}
-                    </VStack>
-                  </VStack>
-                </Box>
-              </ImageBackground>
-            </Box>
-          ) : (
-            <Card className="p-6 shadow-xl bg-gradient-to-br from-primary-600 to-primary-800">
-              <VStack space="md">
-                <VStack space="xs">
-                  <Text className="text-xs text-white/90 uppercase tracking-wider font-semibold">
-                    {t('vehicles.selectVehicle')}
-                  </Text>
-                  <Heading size="3xl" className="text-white font-bold">
-                    {selectedVehicle.name}
-                  </Heading>
-                </VStack>
-                
-                <VStack space="xs">
-                  {selectedVehicle.brand_name && (
-                    <HStack space="sm" className="items-center">
-                      <Text className="text-lg text-white/95 font-semibold">
-                        {selectedVehicle.brand_name}
-                        {selectedVehicle.model && ` ${selectedVehicle.model}`}
-                      </Text>
-                      {selectedVehicle.production_year && (
-                        <Text className="text-sm text-white/80">
-                          ({selectedVehicle.production_year})
-                        </Text>
-                      )}
-                    </HStack>
-                  )}
-                  
-                  {selectedVehicle.license_plate && (
-                    <HStack className="items-center mt-2">
-                      <Box className="bg-white px-3 py-1.5 rounded-lg">
-                        <Text className="text-base font-bold text-typography-900 tracking-wider">
-                          {selectedVehicle.license_plate}
-                        </Text>
+                        </Box>
                       </Box>
-                    </HStack>
-                  )}
-                </VStack>
-              </VStack>
-            </Card>
-          )}
+                    )}
+                    
+                    <VStack space="md">
+                      <VStack space="xs">
+                        <Text className="text-xs text-white/90 uppercase tracking-wider font-semibold">
+                          {t('vehicles.selectVehicle')}
+                        </Text>
+                        <Heading size="3xl" className="text-white font-bold">
+                          {selectedVehicle.name}
+                        </Heading>
+                      </VStack>
+                      
+                      <VStack space="xs">
+                        {selectedVehicle.brand_name && (
+                          <HStack space="sm" className="items-center">
+                            <Text className="text-lg text-white/95 font-semibold">
+                              {selectedVehicle.brand_name}
+                              {selectedVehicle.model && ` ${selectedVehicle.model}`}
+                            </Text>
+                            {selectedVehicle.production_year && (
+                              <Text className="text-sm text-white/80">
+                                ({selectedVehicle.production_year})
+                              </Text>
+                            )}
+                          </HStack>
+                        )}
+                        
+                        {selectedVehicle.license_plate && (
+                          <HStack className="items-center mt-2">
+                            <Box className="bg-white px-3 py-1.5 rounded-lg">
+                              <Text className="text-base font-bold text-typography-900 tracking-wider">
+                                {selectedVehicle.license_plate}
+                              </Text>
+                            </Box>
+                          </HStack>
+                        )}
+                      </VStack>
+                    </VStack>
+                  </Box>
+                </ImageBackground>
+              </Box>
+            );
+          })()}
 
           {/* Quick Fuel Form with modern styling */}
           <Card className="p-5 shadow-lg bg-white dark:bg-background-900">

@@ -1,6 +1,5 @@
 // Database types matching PRODUCT_REQUIREMENTS.md schema
 
-export type VehicleType = 'car' | 'truck' | 'motorcycle' | 'other';
 export type FuelType = 'gasoline' | 'diesel' | 'electric' | 'hybrid' | 'lpg';
 export type TransactionType = 'purchase' | 'sale' | 'expense' | 'income';
 export type SubscriptionPlan = 'free' | 'basic';
@@ -14,7 +13,7 @@ export interface Currency {
 export interface Brand {
   id: number;
   name: string;
-  vehicle_type: VehicleType;
+  vehicle_type: string; // Legacy field, kept for compatibility
 }
 
 // Energy Stations table (for fuel purchases)
@@ -69,10 +68,17 @@ export interface CreateCompanyInput {
 }
 
 // Vehicles table
+export interface VehicleTypeRecord {
+  id: number;
+  name_key: string;
+  created_at: string;
+}
+
 export interface Vehicle {
   id: number;
   user_id: number;
   name: string;
+  vehicle_type_id: number;
   brand_id: number | null;
   custom_brand_name: string | null;
   model: string | null;
@@ -95,6 +101,7 @@ export interface Vehicle {
 export interface CreateVehicleInput {
   user_id: number;
   name: string;
+  vehicle_type_id: number;
   brand_id?: number | null;
   custom_brand_name?: string | null;
   model?: string | null;
@@ -237,6 +244,7 @@ export interface User {
 // Joined types for queries
 export interface VehicleWithBrand extends Vehicle {
   brand_name?: string; // From brands table or custom_brand_name
+  vehicle_type_name_key?: string; // From vehicle_types table
 }
 
 export interface TransactionWithDetails extends VehicleTransaction {

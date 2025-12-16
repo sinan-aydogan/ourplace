@@ -82,8 +82,15 @@ export default function VehicleDrawer() {
                               {vehicle.license_plate}
                             </Text>
                           )}
-                          {(vehicle.fuel_type || vehicle.is_income_generating) && (
+                          {(vehicle.vehicle_type_name_key || vehicle.fuel_type || vehicle.is_income_generating) && (
                             <HStack space="xs" className="mt-1">
+                              {vehicle.vehicle_type_name_key && (
+                                <Box className="bg-primary-100 px-2 py-1 rounded">
+                                  <Text className="text-xs text-primary-700">
+                                    {t(`vehicles.vehicleType_${vehicle.vehicle_type_name_key}`)}
+                                  </Text>
+                                </Box>
+                              )}
                               {vehicle.fuel_type && (
                                 <Box className="bg-background-100 px-2 py-1 rounded">
                                   <Text className="text-xs">

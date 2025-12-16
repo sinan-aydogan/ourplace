@@ -15,7 +15,7 @@ import { Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, Selec
 import { Switch } from '@/components/ui/switch';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
-import type { Brand, FuelType } from '@/types/database';
+import type { Brand, FuelType, VehicleTypeRecord } from '@/types/database';
 
 export default function CreateVehicle() {
   const { t } = useTranslation();
@@ -23,6 +23,8 @@ export default function CreateVehicle() {
   const { user, refreshVehicles } = useApp();
 
   const [name, setName] = useState('');
+  const [vehicleTypes, setVehicleTypes] = useState<VehicleTypeRecord[]>([]);
+  const [selectedVehicleTypeId, setSelectedVehicleTypeId] = useState<number>(1);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null);
   const [customBrandName, setCustomBrandName] = useState('');
@@ -35,15 +37,22 @@ export default function CreateVehicle() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadBrands();
+    loadData();
   }, []);
 
-  const loadBrands = async () => {
+  const loadData = async () => {
     try {
-      const allBrands = await db.getBrands();
+      const [allBrands, allVehicleTypes] = await Promise.all([
+        db.getBrands(),
+        db.getVehicleTypes(),
+      ]);
       setBrands(allBrands);
+      setVehicleTypes(allVehicleTypes);
+      if (allVehicleTypes.length > 0) {
+        setSelectedVehicleTypeId(allVehicleTypes[0].id);
+      }
     } catch (error) {
-      console.error('Failed to load brands:', error);
+      console.error('Failed to load data:', error);
     }
   };
 
@@ -89,6 +98,7 @@ export default function CreateVehicle() {
       await db.createVehicle({
         user_id: user.id,
         name,
+        vehicle_type_id: selectedVehicleTypeId,
         brand_id: selectedBrandId,
         custom_brand_name: selectedBrandId ? null : customBrandName,
         model: model || null,
@@ -160,6 +170,45 @@ export default function CreateVehicle() {
                 onChangeText={setName}
               />
             </Input>
+          </VStack>
+
+          {/* Vehicle Type Selection */}
+          <VStack space="xs">
+            <Text className="font-semibold">{t('vehicles.vehicleType')} *</Text>
+            <Select
+              selectedValue={selectedVehicleTypeId.toString()}
+              onValueChange={(value) => {
+                setSelectedVehicleTypeId(parseInt(value));
+              }}
+            >
+              <SelectTrigger>
+                <SelectInput 
+                  placeholder={t('vehicles.vehicleType')}
+                  value={
+                    vehicleTypes.find(vt => vt.id === selectedVehicleTypeId)?.name_key
+                      ? t(`vehicles.vehicleType_${vehicleTypes.find(vt => vt.id === selectedVehicleTypeId)?.name_key}`)
+                      : ''
+                  }
+                />
+              </SelectTrigger>
+              <SelectPortal>
+                <SelectBackdrop />
+                <SelectContent>
+                  <SelectDragIndicatorWrapper>
+                    <SelectDragIndicator />
+                  </SelectDragIndicatorWrapper>
+                  <SelectScrollView>
+                    {vehicleTypes.map((vt) => (
+                      <SelectItem
+                        key={vt.id}
+                        label={t(`vehicles.vehicleType_${vt.name_key}`)}
+                        value={vt.id.toString()}
+                      />
+                    ))}
+                  </SelectScrollView>
+                </SelectContent>
+              </SelectPortal>
+            </Select>
           </VStack>
 
           {/* Brand Selection */}
