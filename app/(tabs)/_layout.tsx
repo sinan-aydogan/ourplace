@@ -17,7 +17,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#8b5cf6',
+        tabBarActiveTintColor: '#22c55e',
         tabBarInactiveTintColor: '#94a3b8',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -44,6 +44,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: t('navigation.home'),
+          tabBarActiveTintColor: '#f97316',
           tabBarIcon: ({ color, size }) => (
             <Home size={size || 24} color={color} strokeWidth={2.5} />
           ),
@@ -54,6 +55,7 @@ export default function TabLayout() {
         name="expenses"
         options={{
           title: t('navigation.expenses'),
+          tabBarActiveTintColor: '#ef4444',
           tabBarIcon: ({ color, size }) => (
             <Wallet size={size || 24} color={color} strokeWidth={2.5} />
           ),
@@ -75,6 +77,7 @@ export default function TabLayout() {
         name="reports"
         options={{
           title: t('navigation.reports'),
+          tabBarActiveTintColor: '#3b82f6',
           tabBarIcon: ({ color, size }) => (
             <BarChart3 size={size || 24} color={color} strokeWidth={2.5} />
           ),
@@ -85,6 +88,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t('navigation.settings'),
+          tabBarActiveTintColor: '#3b82f6',
           tabBarIcon: ({ color, size }) => (
             <Settings size={size || 24} color={color} strokeWidth={2.5} />
           ),
