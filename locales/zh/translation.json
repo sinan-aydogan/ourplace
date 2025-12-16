@@ -42,6 +42,8 @@
     "addPhoto": "点击添加照片",
     "removePhoto": "删除照片",
     "selectVehicle": "选择车辆",
+    "select": "选择",
+    "active": "已激活",
     "noVehicles": "未找到车辆",
     "firstVehiclePrompt": "让我们注册您的第一辆车！",
     "deleteConfirm": "您确定要删除此车辆吗？",

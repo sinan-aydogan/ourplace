@@ -42,6 +42,8 @@
     "addPhoto": "Appuyez pour ajouter une photo",
     "removePhoto": "Supprimer la Photo",
     "selectVehicle": "Sélectionner un Véhicule",
+    "select": "Sélectionner",
+    "active": "Actif",
     "noVehicles": "Aucun véhicule trouvé",
     "firstVehiclePrompt": "Enregistrons votre premier véhicule !",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce véhicule ?",

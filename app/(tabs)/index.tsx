@@ -98,7 +98,7 @@ export default function Home() {
   };
 
   const loadTransactions = async (loadMore = false) => {
-    if (!selectedVehicle) return;
+    if (!selectedVehicle || !selectedVehicle.id) return;
     
     try {
       const offset = loadMore ? transactions.length : 0;
@@ -121,6 +121,10 @@ export default function Home() {
       setShowMore(newTransactions.length === 5);
     } catch (error) {
       console.error('Failed to load transactions:', error);
+      // Set empty array on error to prevent UI issues
+      if (!loadMore) {
+        setTransactions([]);
+      }
     }
   };
 

@@ -290,6 +290,45 @@ class DatabaseService {
       );
     `);
 
+    // User Limits table (for tracking free tier limits)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS user_limits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        limit_type TEXT NOT NULL,
+        remaining_count INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        UNIQUE(user_id, limit_type)
+      );
+    `);
+
+    // User Clicks table (for tracking user interactions)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS user_clicks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        click_type TEXT NOT NULL,
+        triggered BOOLEAN NOT NULL DEFAULT 0,
+        triggered_by TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    // Ad Triggers table (for tracking ad displays)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS ad_triggers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        trigger_type TEXT NOT NULL,
+        click_type TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
     // Create indexes for better query performance
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_vehicles_user_id ON vehicles(user_id);
@@ -300,6 +339,11 @@ class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_energy_stations_user_id ON energy_stations(user_id);
       CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
       CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_limits_user_id ON user_limits(user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_clicks_user_id ON user_clicks(user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_clicks_created_at ON user_clicks(created_at);
+      CREATE INDEX IF NOT EXISTS idx_ad_triggers_user_id ON ad_triggers(user_id);
+      CREATE INDEX IF NOT EXISTS idx_ad_triggers_created_at ON ad_triggers(created_at);
     `);
   }
 
@@ -520,35 +564,41 @@ class DatabaseService {
     offset?: number
   ): Promise<TransactionWithDetails[]> {
     if (!this.db) throw new Error('Database not initialized');
+    if (!vehicleId) return [];
 
-    let query = `
-      SELECT vt.*,
-        v.name as vehicle_name,
-        et.name as expense_type_name,
-        it.name as income_type_name,
-        e.fuel_unit_price as fuel_unit_price
-      FROM vehicle_transactions vt
-      LEFT JOIN vehicles v ON vt.vehicle_id = v.id
-      LEFT JOIN expense_types et ON vt.expense_type_id = et.id
-      LEFT JOIN income_types it ON vt.income_type_id = it.id
-      LEFT JOIN expenses e ON vt.id = e.transaction_id
-      WHERE vt.vehicle_id = ?
-      ORDER BY vt.transaction_date DESC, vt.created_at DESC
-    `;
+    try {
+      let query = `
+        SELECT vt.*,
+          v.name as vehicle_name,
+          et.name as expense_type_name,
+          it.name as income_type_name,
+          e.fuel_unit_price as fuel_unit_price
+        FROM vehicle_transactions vt
+        LEFT JOIN vehicles v ON vt.vehicle_id = v.id
+        LEFT JOIN expense_types et ON vt.expense_type_id = et.id
+        LEFT JOIN income_types it ON vt.income_type_id = it.id
+        LEFT JOIN expenses e ON vt.id = e.transaction_id
+        WHERE vt.vehicle_id = ?
+        ORDER BY vt.transaction_date DESC, vt.created_at DESC
+      `;
 
-    const params: any[] = [vehicleId];
+      const params: any[] = [vehicleId];
 
-    if (limit) {
-      query += ' LIMIT ?';
-      params.push(limit);
+      if (limit) {
+        query += ' LIMIT ?';
+        params.push(limit);
+      }
+
+      if (offset) {
+        query += ' OFFSET ?';
+        params.push(offset);
+      }
+
+      return await this.db.getAllAsync<TransactionWithDetails>(query, params);
+    } catch (error) {
+      console.error('Failed to get vehicle transactions:', error);
+      return [];
     }
-
-    if (offset) {
-      query += ' OFFSET ?';
-      params.push(offset);
-    }
-
-    return await this.db.getAllAsync<TransactionWithDetails>(query, params);
   }
 
   // Expense operations
@@ -911,33 +961,48 @@ class DatabaseService {
 
   async getLastFuelTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
-    return await this.db.getFirstAsync<TransactionWithDetails>(
-      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name,
-        e.fuel_unit_price as fuel_unit_price
-       FROM vehicle_transactions vt
-       LEFT JOIN expense_types et ON vt.expense_type_id = et.id
-       LEFT JOIN income_types it ON vt.income_type_id = it.id
-       LEFT JOIN expenses e ON vt.id = e.transaction_id
-       WHERE vt.vehicle_id = ? AND vt.transaction_type = 'expense' 
-       AND (et.name LIKE '%fuel%' OR et.name LIKE '%yakıt%' OR LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
-       ORDER BY vt.transaction_date DESC, vt.created_at DESC
-       LIMIT 1`,
-      [vehicleId]
-    );
+    if (!vehicleId) return null;
+    
+    try {
+      return await this.db.getFirstAsync<TransactionWithDetails>(
+        `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name,
+          e.fuel_unit_price as fuel_unit_price
+         FROM vehicle_transactions vt
+         LEFT JOIN expense_types et ON vt.expense_type_id = et.id
+         LEFT JOIN income_types it ON vt.income_type_id = it.id
+         LEFT JOIN expenses e ON vt.id = e.transaction_id
+         WHERE vt.vehicle_id = ? AND vt.transaction_type = 'expense' 
+         AND et.name IS NOT NULL
+         AND (et.name LIKE '%fuel%' OR et.name LIKE '%yakıt%' OR LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
+         ORDER BY vt.transaction_date DESC, vt.created_at DESC
+         LIMIT 1`,
+        [vehicleId]
+      );
+    } catch (error) {
+      console.error('Failed to get last fuel transaction:', error);
+      return null;
+    }
   }
 
   async getLastIncomeTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
-    return await this.db.getFirstAsync<TransactionWithDetails>(
-      `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name
-       FROM vehicle_transactions vt
-       LEFT JOIN expense_types et ON vt.expense_type_id = et.id
-       LEFT JOIN income_types it ON vt.income_type_id = it.id
-       WHERE vt.vehicle_id = ? AND vt.transaction_type = 'income'
-       ORDER BY vt.transaction_date DESC, vt.created_at DESC
-       LIMIT 1`,
-      [vehicleId]
-    );
+    if (!vehicleId) return null;
+    
+    try {
+      return await this.db.getFirstAsync<TransactionWithDetails>(
+        `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name
+         FROM vehicle_transactions vt
+         LEFT JOIN expense_types et ON vt.expense_type_id = et.id
+         LEFT JOIN income_types it ON vt.income_type_id = it.id
+         WHERE vt.vehicle_id = ? AND vt.transaction_type = 'income'
+         ORDER BY vt.transaction_date DESC, vt.created_at DESC
+         LIMIT 1`,
+        [vehicleId]
+      );
+    } catch (error) {
+      console.error('Failed to get last income transaction:', error);
+      return null;
+    }
   }
 
   async clearAllData(): Promise<void> {
@@ -953,6 +1018,108 @@ class DatabaseService {
       DELETE FROM brands;
       DELETE FROM users;
     `);
+  }
+
+  // User Limits operations
+  async initializeUserLimits(userId: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const limits = [
+      { type: 'vehicle_add', count: 1 },
+      { type: 'expense_type_add', count: 2 },
+      { type: 'income_type_add', count: 2 },
+    ];
+
+    for (const limit of limits) {
+      await this.db.runAsync(
+        `INSERT OR IGNORE INTO user_limits (user_id, limit_type, remaining_count) 
+         VALUES (?, ?, ?)`,
+        [userId, limit.type, limit.count]
+      );
+    }
+  }
+
+  async getUserLimit(userId: number, limitType: string): Promise<number> {
+    if (!this.db) throw new Error('Database not initialized');
+    const limit = await this.db.getFirstAsync<{ remaining_count: number }>(
+      'SELECT remaining_count FROM user_limits WHERE user_id = ? AND limit_type = ?',
+      [userId, limitType]
+    );
+    return limit?.remaining_count ?? 0;
+  }
+
+  async decrementUserLimit(userId: number, limitType: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      `UPDATE user_limits SET remaining_count = remaining_count - 1, updated_at = datetime('now')
+       WHERE user_id = ? AND limit_type = ? AND remaining_count > 0`,
+      [userId, limitType]
+    );
+  }
+
+  async incrementUserLimit(userId: number, limitType: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      `UPDATE user_limits SET remaining_count = remaining_count + 1, updated_at = datetime('now')
+       WHERE user_id = ? AND limit_type = ?`,
+      [userId, limitType]
+    );
+  }
+
+  // User Clicks operations
+  async trackClick(
+    userId: number,
+    clickType: string,
+    triggered: boolean = false,
+    triggeredBy?: string
+  ): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      `INSERT INTO user_clicks (user_id, click_type, triggered, triggered_by) 
+       VALUES (?, ?, ?, ?)`,
+      [userId, clickType, triggered ? 1 : 0, triggeredBy || null]
+    );
+  }
+
+  async getClickCount(
+    userId: number,
+    clickType: string,
+    sinceMinutes?: number
+  ): Promise<number> {
+    if (!this.db) throw new Error('Database not initialized');
+    let query = 'SELECT COUNT(*) as count FROM user_clicks WHERE user_id = ? AND click_type = ?';
+    const params: any[] = [userId, clickType];
+
+    if (sinceMinutes) {
+      query += ` AND created_at >= datetime('now', '-${sinceMinutes} minutes')`;
+    }
+
+    const result = await this.db.getFirstAsync<{ count: number }>(query, params);
+    return result?.count ?? 0;
+  }
+
+  // Ad Triggers operations
+  async recordAdTrigger(
+    user_id: number,
+    triggerType: string,
+    clickType?: string
+  ): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.runAsync(
+      `INSERT INTO ad_triggers (user_id, trigger_type, click_type) 
+       VALUES (?, ?, ?)`,
+      [user_id, triggerType, clickType || null]
+    );
+  }
+
+  async hasRecentAdTrigger(userId: number, withinMinutes: number = 5): Promise<boolean> {
+    if (!this.db) throw new Error('Database not initialized');
+    const result = await this.db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM ad_triggers 
+       WHERE user_id = ? AND created_at >= datetime('now', '-${withinMinutes} minutes')`,
+      [userId]
+    );
+    return (result?.count ?? 0) > 0;
   }
 }
 

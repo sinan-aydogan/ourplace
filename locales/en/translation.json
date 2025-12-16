@@ -42,6 +42,8 @@
     "addPhoto": "Tap to add photo",
     "removePhoto": "Remove Photo",
     "selectVehicle": "Select Vehicle",
+    "select": "Select",
+    "active": "Active",
     "noVehicles": "No vehicles found",
     "firstVehiclePrompt": "Let's register your first vehicle!",
     "deleteConfirm": "Are you sure you want to delete this vehicle?",
@@ -255,5 +257,14 @@
     "noData": "No data available",
     "noTransactions": "No transactions in this period",
     "generateReport": "Generate Report"
+  },
+  "ads": {
+    "watchAdAndAdd": "Watch Ad and Add",
+    "watchAdDescription": "By clicking the button, you will watch an ad and earn 1 addition right",
+    "adLoading": "Loading ad...",
+    "adError": "Failed to load ad. Please try again.",
+    "adRewarded": "You earned 1 addition right!",
+    "limitReached": "Limit Reached",
+    "limitReachedMessage": "You have reached your limit. Watch an ad to continue."
   }
 }

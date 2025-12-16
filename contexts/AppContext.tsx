@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '@/services/database';
 import { seedDatabase } from '@/services/seed-data';
 import { initializeI18n } from '@/services/i18n';
+import { initializeAdMob } from '@/services/admob';
+import { LimitService } from '@/services/limitService';
 import type { User, Vehicle, VehicleWithBrand } from '@/types/database';
 
 const THEME_KEY = '@cockpit:theme';
@@ -77,6 +79,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       // Initialize i18n
       await initializeI18n();
 
+      // Initialize AdMob
+      await initializeAdMob();
+
       // Initialize database
       await db.init();
 
@@ -91,6 +96,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       let currentUser = await db.getFirstUser();
       if (!currentUser) {
         currentUser = await db.createUser();
+        // Initialize limits for new user
+        await LimitService.initializeLimits(currentUser.id);
+      } else {
+        // Ensure limits exist for existing user (migration)
+        const vehicleLimit = await LimitService.getRemainingCount(currentUser.id, 'vehicle_add');
+        if (vehicleLimit === 0) {
+          await LimitService.initializeLimits(currentUser.id);
+        }
       }
       setUser(currentUser);
 

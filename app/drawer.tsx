@@ -56,60 +56,82 @@ export default function VehicleDrawer() {
                 </VStack>
               </Card>
             ) : (
-              userVehicles.map((vehicle) => (
-                <Card
-                  key={vehicle.id}
-                  className={`p-4 ${
-                    selectedVehicle?.id === vehicle.id
-                      ? 'border-2 border-primary-500'
-                      : ''
-                  }`}
-                >
-                  <VStack space="sm">
-                    <HStack className="justify-between items-start">
-                      <VStack space="xs" className="flex-1">
-                        <TouchableOpacity onPress={() => handleSelectVehicle(vehicle.id)}>
-                          <Heading size="md">{vehicle.name}</Heading>
-                        </TouchableOpacity>
-                        {vehicle.brand_name && (
-                          <Text className="text-typography-600">
-                            {vehicle.brand_name}
-                            {vehicle.model && ` ${vehicle.model}`}
-                          </Text>
-                        )}
-                        {vehicle.license_plate && (
-                          <Text className="text-sm text-typography-500">
-                            {vehicle.license_plate}
-                          </Text>
-                        )}
-                        <HStack space="xs" className="mt-1">
-                          <Box className="bg-background-100 px-2 py-1 rounded">
-                            <Text className="text-xs">
-                              {t(`fuelTypes.${vehicle.fuel_type}`)}
+              userVehicles
+                .filter((vehicle) => vehicle && vehicle.id)
+                .map((vehicle) => (
+                  <Card
+                    key={vehicle.id}
+                    className={`p-4 ${
+                      selectedVehicle?.id === vehicle.id
+                        ? 'border-2 border-primary-500'
+                        : ''
+                    }`}
+                  >
+                    <VStack space="sm">
+                      <HStack className="justify-between items-start">
+                        <VStack space="xs" className="flex-1">
+                          <Heading size="md">{vehicle.name || ''}</Heading>
+                          {(vehicle.brand_name || vehicle.model) && (
+                            <Text className="text-typography-600">
+                              {vehicle.brand_name || ''}
+                              {vehicle.model ? ` ${vehicle.model}` : ''}
                             </Text>
-                          </Box>
-                          {vehicle.is_income_generating && (
-                            <Box className="bg-success-100 px-2 py-1 rounded">
-                              <Text className="text-xs text-success-700">
-                                {t('vehicles.isIncomeGenerating')}
-                              </Text>
-                            </Box>
                           )}
+                          {vehicle.license_plate && (
+                            <Text className="text-sm text-typography-500">
+                              {vehicle.license_plate}
+                            </Text>
+                          )}
+                          {(vehicle.fuel_type || vehicle.is_income_generating) && (
+                            <HStack space="xs" className="mt-1">
+                              {vehicle.fuel_type && (
+                                <Box className="bg-background-100 px-2 py-1 rounded">
+                                  <Text className="text-xs">
+                                    {t(`fuelTypes.${vehicle.fuel_type}`) || vehicle.fuel_type}
+                                  </Text>
+                                </Box>
+                              )}
+                              {Boolean(vehicle.is_income_generating) && (
+                                <Box className="bg-success-100 px-2 py-1 rounded">
+                                  <Text className="text-xs text-success-700">
+                                    {t('vehicles.isIncomeGenerating')}
+                                  </Text>
+                                </Box>
+                              )}
+                            </HStack>
+                          )}
+                        </VStack>
+                        <HStack space="xs">
+                          {selectedVehicle?.id === vehicle.id ? (
+                            <Button
+                              size="xs"
+                              variant="solid"
+                              action="positive"
+                              isDisabled={true}
+                            >
+                              <ButtonText>{t('vehicles.active')}</ButtonText>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="xs"
+                              variant="solid"
+                              onPress={() => handleSelectVehicle(vehicle.id)}
+                            >
+                              <ButtonText>{t('vehicles.select')}</ButtonText>
+                            </Button>
+                          )}
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onPress={() => router.push(`/vehicles/${vehicle.id}`)}
+                          >
+                            <ButtonIcon as={Edit2} />
+                          </Button>
                         </HStack>
-                      </VStack>
-                      <HStack space="xs">
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          onPress={() => router.push(`/vehicles/${vehicle.id}`)}
-                        >
-                          <ButtonIcon as={Edit2} />
-                        </Button>
                       </HStack>
-                    </HStack>
-                  </VStack>
-                </Card>
-              ))
+                    </VStack>
+                  </Card>
+                ))
             )}
           </VStack>
         </ScrollView>

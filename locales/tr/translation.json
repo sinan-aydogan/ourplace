@@ -42,6 +42,8 @@
     "addPhoto": "Fotoğraf eklemek için dokunun",
     "removePhoto": "Fotoğrafı Kaldır",
     "selectVehicle": "Araç Seç",
+    "select": "Seç",
+    "active": "Aktif",
     "noVehicles": "Araç bulunamadı",
     "firstVehiclePrompt": "Hadi ilk aracını kayıt edelim!",
     "deleteConfirm": "Bu aracı silmek istediğinizden emin misiniz?",
@@ -255,5 +257,14 @@
     "noData": "Veri yok",
     "noTransactions": "Bu dönemde işlem yok",
     "generateReport": "Rapor Oluştur"
+  },
+  "ads": {
+    "watchAdAndAdd": "Reklam İzle ve Ekle",
+    "watchAdDescription": "Düğmeyi tıkladığınızda reklam izleyerek 1 adet ekleme hakkı kazanacaksınız",
+    "adLoading": "Reklam yükleniyor...",
+    "adError": "Reklam yüklenemedi. Lütfen tekrar deneyin.",
+    "adRewarded": "1 adet ekleme hakkı kazandınız!",
+    "limitReached": "Limit Aşıldı",
+    "limitReachedMessage": "Limitinize ulaştınız. Devam etmek için reklam izleyin."
   }
 }

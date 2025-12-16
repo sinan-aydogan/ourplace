@@ -42,6 +42,8 @@
     "addPhoto": "Toque para adicionar foto",
     "removePhoto": "Remover Foto",
     "selectVehicle": "Selecionar Veículo",
+    "select": "Selecionar",
+    "active": "Ativo",
     "noVehicles": "Nenhum veículo encontrado",
     "firstVehiclePrompt": "Vamos registrar seu primeiro veículo!",
     "deleteConfirm": "Tem certeza de que deseja excluir este veículo?",
