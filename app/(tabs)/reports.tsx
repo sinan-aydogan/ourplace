@@ -145,7 +145,7 @@ export default function ReportsPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-0">
+      <Box className="flex-1 bg-background-0" style={{ marginBottom: -25 }}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

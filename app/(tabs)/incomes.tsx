@@ -355,7 +355,7 @@ export default function IncomesPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-50">
+      <Box className="flex-1 bg-background-50" style={{ marginBottom: -25 }}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

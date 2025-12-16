@@ -2,11 +2,13 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '@/contexts/AppContext';
-import { Text } from '@/components/ui/text';
+import { Home, Wallet, TrendingUp, BarChart3, Settings } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { t } = useTranslation();
   const { userVehicles } = useApp();
+  const insets = useSafeAreaInsets();
 
   // Check if user has any income-generating vehicle
   const hasIncomeGeneratingVehicle = userVehicles.some(v => v.is_income_generating);
@@ -15,16 +17,35 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: '#8b5cf6',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 65 + Math.max(insets.bottom, 8),
+          paddingTop: 0,
+          paddingBottom: Math.max(insets.bottom, 16),
+          marginTop: -1,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          letterSpacing: 0.3,
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 8,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: t('navigation.home'),
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color }}>🏠</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Home size={size || 24} color={color} strokeWidth={2.5} />
           ),
         }}
       />
@@ -33,8 +54,8 @@ export default function TabLayout() {
         name="expenses"
         options={{
           title: t('navigation.expenses'),
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color }}>💸</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Wallet size={size || 24} color={color} strokeWidth={2.5} />
           ),
         }}
       />
@@ -44,8 +65,8 @@ export default function TabLayout() {
         options={{
           title: t('navigation.incomes'),
           href: hasIncomeGeneratingVehicle ? undefined : null,
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color }}>💰</Text>
+          tabBarIcon: ({ color, size }) => (
+            <TrendingUp size={size || 24} color={color} strokeWidth={2.5} />
           ),
         }}
       />
@@ -54,8 +75,8 @@ export default function TabLayout() {
         name="reports"
         options={{
           title: t('navigation.reports'),
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color }}>📊</Text>
+          tabBarIcon: ({ color, size }) => (
+            <BarChart3 size={size || 24} color={color} strokeWidth={2.5} />
           ),
         }}
       />
@@ -64,8 +85,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t('navigation.settings'),
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color }}>⚙️</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Settings size={size || 24} color={color} strokeWidth={2.5} />
           ),
         }}
       />
