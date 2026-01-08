@@ -1,21 +1,28 @@
 import { Platform } from 'react-native';
+import { TestIds } from 'react-native-google-mobile-ads';
 
 // AdMob App ID
 export const ADMOB_APP_ID = 'ca-app-pub-1104751304978372~6544635071';
 
 // Ad Unit IDs
-export const AD_UNITS = {
+const PRODUCTION_AD_UNITS = {
   REWARDED: 'ca-app-pub-1104751304978372/6353063384',
   BANNER: 'ca-app-pub-1104751304978372/3726900049',
   INTERSTITIAL: 'ca-app-pub-1104751304978372/7900473998',
 };
+
+export const AD_UNITS = __DEV__ ? {
+  REWARDED: TestIds.REWARDED,
+  BANNER: TestIds.BANNER,
+  INTERSTITIAL: TestIds.INTERSTITIAL,
+} : PRODUCTION_AD_UNITS;
 
 // Check if native module is available (without requiring the ads module)
 const isNativeModuleAvailable = (): boolean => {
   if (Platform.OS === 'web') {
     return false;
   }
-  
+
   try {
     const ReactNative = require('react-native');
     // Try to access the native module registry
@@ -56,30 +63,30 @@ export const initializeAdMob = async () => {
   try {
     // Dynamic import to avoid loading on web
     let adsModule: any;
-    
+
     try {
       adsModule = require('react-native-google-mobile-ads');
     } catch (requireError: any) {
       // Check if it's the TurboModuleRegistry error
-      if (requireError?.message?.includes('TurboModuleRegistry') || 
-          requireError?.message?.includes('RNGoogleMobileAdsModule')) {
+      if (requireError?.message?.includes('TurboModuleRegistry') ||
+        requireError?.message?.includes('RNGoogleMobileAdsModule')) {
         console.log('AdMob native module not available (expected in Expo Go, requires development build)');
       } else {
         console.log('AdMob module require failed:', requireError);
       }
       return;
     }
-    
+
     // Check if module was loaded
     if (!adsModule) {
       console.log('AdMob module not available');
       return;
     }
-    
+
     // The package exports both default and MobileAds
     // MobileAds is a function that returns the ads instance
     const MobileAds = adsModule?.MobileAds || adsModule?.default;
-    
+
     if (MobileAds && typeof MobileAds === 'function') {
       const mobileAds = MobileAds();
       if (mobileAds && typeof mobileAds.initialize === 'function') {
@@ -93,8 +100,8 @@ export const initializeAdMob = async () => {
     }
   } catch (error: any) {
     // Check if it's a module not found error (expected in Expo Go)
-    if (error?.message?.includes('TurboModuleRegistry') || 
-        error?.message?.includes('RNGoogleMobileAdsModule')) {
+    if (error?.message?.includes('TurboModuleRegistry') ||
+      error?.message?.includes('RNGoogleMobileAdsModule')) {
       console.log('AdMob native module not available (expected in Expo Go, requires development build)');
     } else {
       console.error('Failed to initialize AdMob:', error);

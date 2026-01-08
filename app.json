@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cockpit",
     "slug": "cockpit",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cockpit",
@@ -23,7 +23,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.sinanaydogan.cockpit"
+      "package": "com.sinanaydogan.cockpit",
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
@@ -48,8 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "dadfb85b-4698-423f-8c86-0425f224be62"
+        "projectId": "cca40ab5-3963-4a29-bf1b-6dff9f7f89ce"
       }
-    }
+    },
+    "owner": "deliormanlibg"
   }
 }

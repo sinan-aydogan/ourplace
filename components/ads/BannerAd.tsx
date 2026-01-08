@@ -20,7 +20,7 @@ export function BannerAdComponent({
 
   let BannerAd: any;
   let BannerAdSize: any;
-  
+
   try {
     const adsModule = require('react-native-google-mobile-ads');
     BannerAd = adsModule.BannerAd;
@@ -40,6 +40,7 @@ export function BannerAdComponent({
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
         }}
+        onAdFailedToLoad={(error: any) => console.error('BannerAd failed to load:', error)}
       />
     </View>
   );

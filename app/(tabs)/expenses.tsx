@@ -31,17 +31,18 @@ import {
 } from '@/components/ui/menu';
 import { Icon, ChevronDownIcon } from '@/components/ui/icon';
 import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@/components/ui/checkbox';
-import { CheckIcon, MoreVertical, Plus, Minus, Edit2 } from 'lucide-react-native';
+import { CheckIcon, MoreVertical, Plus, Minus, Edit2, Wallet, Fuel } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import { AddSourceModal } from '@/components/AddSourceModal';
 import { ExpenseTypeModal } from '@/components/ExpenseTypeModal';
 import type { TransactionWithDetails, ExpenseType, EnergyStation, Company, Currency } from '@/types/database';
+import { BannerAdComponent } from '@/components/ads/BannerAd';
 
 export default function ExpensesPage() {
   const { t } = useTranslation();
   const { selectedVehicle, user } = useApp();
-  
+
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [odometer, setOdometer] = useState('');
@@ -63,7 +64,7 @@ export default function ExpensesPage() {
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showExpenseTypeModal, setShowExpenseTypeModal] = useState(false);
   const [editingExpenseType, setEditingExpenseType] = useState<ExpenseType | null>(null);
-  
+
   // Filter states
   const [dateFilter, setDateFilter] = useState<'weekly' | 'monthly' | 'yearly' | 'custom'>('monthly');
   const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
@@ -74,8 +75,8 @@ export default function ExpensesPage() {
   const [lastFuelTransaction, setLastFuelTransaction] = useState<TransactionWithDetails | null>(null);
 
   // Check if expense type is fuel related
-  const isFuelExpense = expenseTypes.find(t => t.id === selectedExpenseType)?.name.toLowerCase().includes('fuel') || 
-                        expenseTypes.find(t => t.id === selectedExpenseType)?.name.toLowerCase().includes('yakıt');
+  const isFuelExpense = expenseTypes.find(t => t.id === selectedExpenseType)?.name.toLowerCase().includes('fuel') ||
+    expenseTypes.find(t => t.id === selectedExpenseType)?.name.toLowerCase().includes('yakıt');
 
   // Helper: Get date range based on filter
   const getDateRange = () => {
@@ -136,23 +137,23 @@ export default function ExpensesPage() {
   // Apply filters to expenses
   const applyFilters = () => {
     const { start, end } = getDateRange();
-    
+
     let filtered = allExpenses.filter(e => {
       const date = new Date(e.transaction_date);
       const inDateRange = date >= start && date <= end;
-      
+
       // Fuel filter
-      const isFuel = e.expense_type_name?.toLowerCase().includes('fuel') || 
-                     e.expense_type_name?.toLowerCase().includes('yakıt');
+      const isFuel = e.expense_type_name?.toLowerCase().includes('fuel') ||
+        e.expense_type_name?.toLowerCase().includes('yakıt');
       const fuelCheck = includeFuel || !isFuel;
-      
+
       // Category filter
-      const categoryCheck = selectedCategories.length === 0 || 
-                           (e.expense_type_id !== null && selectedCategories.includes(e.expense_type_id));
-      
+      const categoryCheck = selectedCategories.length === 0 ||
+        (e.expense_type_id !== null && selectedCategories.includes(e.expense_type_id));
+
       return inDateRange && fuelCheck && categoryCheck;
     });
-    
+
     setExpenses(filtered);
   };
 
@@ -235,7 +236,7 @@ export default function ExpensesPage() {
 
   const loadExpenses = async (loadMore = false) => {
     if (!selectedVehicle) return;
-    
+
     try {
       const offset = loadMore ? allExpenses.length : 0;
       const allTransactions = await db.getVehicleTransactions(
@@ -243,22 +244,22 @@ export default function ExpensesPage() {
         100, // Load more transactions for filtering
         offset
       );
-      
+
       // Filter only expenses
       const expenseTransactions = allTransactions.filter(
         t => t.transaction_type === 'expense'
       );
-      
+
       if (loadMore) {
         setAllExpenses([...allExpenses, ...expenseTransactions]);
       } else {
         setAllExpenses(expenseTransactions);
       }
-      
+
       // Load last fuel transaction for odometer placeholder
       const lastFuel = await db.getLastFuelTransaction(selectedVehicle.id);
       setLastFuelTransaction(lastFuel);
-      
+
       setShowMore(expenseTransactions.length === 100);
     } catch (error) {
       console.error('Failed to load expenses:', error);
@@ -267,22 +268,28 @@ export default function ExpensesPage() {
 
   const handleAddExpense = async () => {
     if (!selectedVehicle || !user || !amount || !selectedExpenseType) return;
-    
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      alert(t('validation.invalidAmount'));
+      return;
+    }
+
     // Use user's default currency if none selected
     const currencyToUse = selectedCurrency || defaultCurrency;
-    
+
     // Check if exchange rate is required but not provided
     const isForeignCurrency = currencyToUse !== defaultCurrency;
     if (isForeignCurrency && !exchangeRate) {
       alert(t('validation.required') + ': ' + t('transactions.exchangeRate'));
       return;
     }
-    
+
     // Validate odometer reading
     if (odometer) {
       const currentOdometer = parseInt(odometer);
       const lastFuelTransaction = await db.getLastFuelTransaction(selectedVehicle.id);
-      
+
       if (lastFuelTransaction && lastFuelTransaction.odometer_reading) {
         if (currentOdometer <= lastFuelTransaction.odometer_reading) {
           alert(t('validation.odometerMustBeGreater', { lastKm: lastFuelTransaction.odometer_reading }));
@@ -290,7 +297,7 @@ export default function ExpensesPage() {
         }
       }
     }
-    
+
     try {
       setLoading(true);
 
@@ -326,7 +333,7 @@ export default function ExpensesPage() {
       setSelectedCurrency(defaultCurrency);
       setSelectedEnergyStation(null);
       setSelectedCompany(null);
-      
+
       // Reload expenses
       await loadExpenses();
     } catch (error) {
@@ -356,7 +363,7 @@ export default function ExpensesPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-50" style={{ marginBottom: -25 }}>
+      <Box className="flex-1 bg-background-50 dark:bg-background-0" style={{ marginBottom: -48 }}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -365,7 +372,7 @@ export default function ExpensesPage() {
           <VStack className="p-4" space="lg">
             {/* Modern Header */}
             <HStack space="md" className="px-1 items-center">
-              <Text className="text-3xl">💸</Text>
+              <Icon as={Wallet} className="w-12 h-12 text-error-600" />
               <VStack space="xs" className="flex-1">
                 <Heading size="2xl" className="font-bold" numberOfLines={1}>{t('expenses.title')}</Heading>
                 <Text className="text-typography-500" numberOfLines={1}>{t('expenses.subtitle')}</Text>
@@ -373,7 +380,7 @@ export default function ExpensesPage() {
             </HStack>
 
             {/* Monthly Summary Card */}
-            <Card className="p-5 shadow-md bg-white dark:bg-background-900">
+            <Card className="p-5 shadow-md bg-white dark:bg-background-50">
               <VStack space="sm">
                 <Text className="text-sm text-typography-500">
                   {calculateSummary().dateRange.start.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -390,10 +397,10 @@ export default function ExpensesPage() {
             </Card>
 
             {/* Quick Expense Form with modern styling */}
-            <Card className="p-5 shadow-lg bg-white dark:bg-background-900">
+            <Card className="p-5 shadow-lg bg-white dark:bg-background-50">
               <VStack space="lg">
                 <Heading size="md" className="font-semibold">{t('expenses.addExpense')}</Heading>
-                
+
                 {/* Expense Type */}
                 <VStack space="xs">
                   <Text className="font-semibold text-sm text-typography-700">{t('expenses.expenseType')} *</Text>
@@ -403,8 +410,8 @@ export default function ExpensesPage() {
                         selectedValue={selectedExpenseType?.toString() || ''}
                         onValueChange={(value) => setSelectedExpenseType(parseInt(value))}
                       >
-                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                          <SelectInput 
+                        <SelectTrigger className="border-2 border-background-200 dark:border-background-700 rounded-xl">
+                          <SelectInput
                             placeholder={t('expenses.expenseType')}
                             value={expenseTypes.find(t => t.id === selectedExpenseType)?.name}
                             className="text-base"
@@ -440,9 +447,9 @@ export default function ExpensesPage() {
                             setShowExpenseTypeModal(true);
                           }
                         }}
-                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0 border-background-200 dark:border-background-700"
                       >
-                        <ButtonIcon as={Edit2} size="xs" />
+                        <ButtonIcon as={Edit2} size="xs" className="text-typography-900" />
                       </Button>
                     )}
                     <Button
@@ -452,9 +459,9 @@ export default function ExpensesPage() {
                         setEditingExpenseType(null);
                         setShowExpenseTypeModal(true);
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0 border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Plus} size="xs" />
+                      <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                     </Button>
                   </HStack>
                 </VStack>
@@ -468,8 +475,8 @@ export default function ExpensesPage() {
                         selectedValue={selectedEnergyStation?.toString() || ''}
                         onValueChange={(value) => setSelectedEnergyStation(parseInt(value))}
                       >
-                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                          <SelectInput 
+                        <SelectTrigger className="border-2 border-background-200 dark:border-background-700 rounded-xl">
+                          <SelectInput
                             placeholder={t('expenses.selectEnergyStation')}
                             value={energyStations.find(s => s.id === selectedEnergyStation)?.name}
                             className="text-base"
@@ -498,9 +505,9 @@ export default function ExpensesPage() {
                       size="md"
                       variant="outline"
                       onPress={() => setShowStationModal(true)}
-                      className="mt-5 w-12 h-12 rounded-xl"
+                      className="mt-5 w-12 h-12 rounded-xl border-background-200 dark:border-background-700"
                     >
-                      <ButtonText className="text-xl">+</ButtonText>
+                      <ButtonText className="text-xl text-typography-900">+</ButtonText>
                     </Button>
                   </HStack>
                 ) : (
@@ -511,8 +518,8 @@ export default function ExpensesPage() {
                         selectedValue={selectedCompany?.toString() || ''}
                         onValueChange={(value) => setSelectedCompany(parseInt(value))}
                       >
-                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                          <SelectInput 
+                        <SelectTrigger className="border-2 border-background-200 dark:border-background-700 rounded-xl">
+                          <SelectInput
                             placeholder={t('expenses.selectCompany')}
                             value={companies.find(c => c.id === selectedCompany)?.name}
                             className="text-base"
@@ -541,9 +548,9 @@ export default function ExpensesPage() {
                       size="md"
                       variant="outline"
                       onPress={() => setShowCompanyModal(true)}
-                      className="rounded-full h-6 w-6 p-0 flex-none -mb-6"
+                      className="rounded-full h-6 w-6 p-0 flex-none -mb-6 border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Plus} size="xs" />
+                      <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                     </Button>
                   </HStack>
                 )}
@@ -551,11 +558,11 @@ export default function ExpensesPage() {
                 {/* Odometer Reading with +/- buttons */}
                 <HStack space="sm" className="items-center">
                   <VStack className="flex-1">
-                    <Input variant="outline" className={`border-2 rounded-xl ${odometer && lastFuelTransaction?.odometer_reading && parseInt(odometer) < lastFuelTransaction.odometer_reading ? 'border-error-500' : 'border-background-200'}`}>
+                    <Input variant="outline" className={`border-2 rounded-xl ${odometer && lastFuelTransaction?.odometer_reading && parseInt(odometer) < lastFuelTransaction.odometer_reading ? 'border-error-500' : 'border-background-200 dark:border-background-700'}`}>
                       <InputField
                         placeholder={lastFuelTransaction?.odometer_reading ? `>${lastFuelTransaction.odometer_reading.toLocaleString()}` : t('transactions.odometerReading')}
                         value={odometer}
-                        onChangeText={setOdometer}
+                        onChangeText={(text) => setOdometer(text.replace(/[^0-9]/g, ''))}
                         keyboardType="numeric"
                         className="text-base"
                       />
@@ -571,9 +578,9 @@ export default function ExpensesPage() {
                       const currentValue = odometer ? parseInt(odometer) : (lastFuelTransaction?.odometer_reading || 0);
                       setOdometer((currentValue + 100).toString());
                     }}
-                    className="rounded-full h-6 w-6 p-0 flex-none"
+                    className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                   >
-                    <ButtonIcon as={Plus} size="xs" />
+                    <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                   </Button>
                   <Button
                     size="lg"
@@ -585,17 +592,17 @@ export default function ExpensesPage() {
                         setOdometer((currentValue - 100).toString());
                       }
                     }}
-                    className="rounded-full h-6 w-6 p-0 flex-none"
+                    className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                   >
-                    <ButtonIcon as={Minus} size="xs" />
+                    <ButtonIcon as={Minus} size="xs" className="text-typography-900" />
                   </Button>
                 </HStack>
 
-                <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                <Input variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                   <InputField
                     placeholder={t('transactions.amount')}
                     value={amount}
-                    onChangeText={setAmount}
+                    onChangeText={(text) => setAmount(text.replace(/[^0-9.,]/g, ''))}
                     keyboardType="numeric"
                     className="text-lg"
                   />
@@ -611,7 +618,7 @@ export default function ExpensesPage() {
                     }
                   }}
                 >
-                  <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
+                  <SelectTrigger variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                     <SelectInput placeholder={t('transactions.currency')} />
                     <SelectIcon className="mr-3" as={ChevronDownIcon} />
                   </SelectTrigger>
@@ -634,21 +641,21 @@ export default function ExpensesPage() {
 
                 {/* Exchange Rate Input - Only show if foreign currency selected */}
                 {selectedCurrency && selectedCurrency !== defaultCurrency && (
-                  <Input variant="outline" className="border-2 border-error-300 rounded-xl bg-error-50">
+                  <Input variant="outline" className="border-2 border-error-300 dark:border-error-700 rounded-xl bg-error-50 dark:bg-error-900/20">
                     <InputField
-                      placeholder={t('transactions.exchangeRate', { 
-                        currency: selectedCurrency, 
-                        defaultCurrency: defaultCurrency 
+                      placeholder={t('transactions.exchangeRate', {
+                        currency: selectedCurrency,
+                        defaultCurrency: defaultCurrency
                       })}
                       value={exchangeRate}
-                      onChangeText={setExchangeRate}
+                      onChangeText={(text) => setExchangeRate(text.replace(/[^0-9.,]/g, ''))}
                       keyboardType="numeric"
                       className="text-base"
                     />
                   </Input>
                 )}
 
-                <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                <Input variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                   <InputField
                     placeholder={t('transactions.description')}
                     value={description}
@@ -669,6 +676,11 @@ export default function ExpensesPage() {
                 </Button>
               </VStack>
             </Card>
+
+            {/* Banner Ad */}
+            <Box className="items-center">
+              <BannerAdComponent />
+            </Box>
 
             {/* Expenses List */}
             <VStack space="md">
@@ -773,11 +785,11 @@ export default function ExpensesPage() {
                   </VStack>
                 </Card>
               )}
-              
+
               {expenses.length === 0 ? (
                 <Card className="p-8 shadow-sm">
                   <VStack space="sm" className="items-center">
-                    <Text className="text-4xl">💸</Text>
+                    <Icon as={Wallet} size="xl" className="text-typography-400" />
                     <Text className="text-center text-typography-500 text-base">
                       {t('transactions.noTransactions')}
                     </Text>
@@ -785,52 +797,61 @@ export default function ExpensesPage() {
                 </Card>
               ) : (
                 <VStack space="sm">
-                  {expenses.map((expense) => (
-                    <Card key={expense.id} className="p-4 shadow-md bg-white dark:bg-background-900 border-l-4 border-l-error-500">
-                      <HStack className="justify-between items-center">
-                        <HStack space="sm" className="flex-1 items-center">
-                          <Box className="w-12 h-12 rounded-full bg-error-100 dark:bg-error-900/30 items-center justify-center">
-                            <Text className="text-2xl">💸</Text>
-                          </Box>
-                          <VStack space="xs" className="flex-1">
-                            <Text className="font-semibold text-base">
-                              {expense.expense_type_name}
-                            </Text>
-                            {expense.description && (
-                              <Text className="text-sm text-typography-500" numberOfLines={1}>
-                                {expense.description}
-                              </Text>
-                            )}
-                            <HStack space="sm" className="items-center flex-wrap">
-                              <Text className="text-xs text-typography-400">
-                                {new Date(expense.transaction_date).toLocaleDateString()}
-                              </Text>
-                              {expense.odometer_reading && (
-                                <>
-                                  <Text className="text-xs text-typography-400">•</Text>
-                                  <Text className="text-xs text-typography-400">
-                                    📍 {expense.odometer_reading.toLocaleString()} km
-                                  </Text>
-                                </>
+                  {expenses.map((expense) => {
+                    const isFuel = expense.expense_type_name?.toLowerCase().includes('fuel') ||
+                      expense.expense_type_name?.toLowerCase().includes('yakıt');
+
+                    return (
+                      <Card key={expense.id} className={`p-4 shadow-md bg-white dark:bg-background-50 border-l-4 ${isFuel ? 'border-l-orange-500' : 'border-l-error-500'}`}>
+                        <HStack className="justify-between items-center">
+                          <HStack space="sm" className="flex-1 items-center">
+                            <Box className={`w-12 h-12 rounded-full items-center justify-center ${isFuel ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-error-100 dark:bg-error-900/30'}`}>
+                              {isFuel ? (
+                                <Icon as={Fuel} size="xl" className="text-orange-500" />
+                              ) : (
+                                <Icon as={Wallet} size="xl" className="text-error-600" />
                               )}
-                            </HStack>
-                            {(expense.energy_station_name || expense.company_name) && (
-                              <Text className="text-xs text-typography-500">
-                                🏢 {expense.energy_station_name || expense.company_name}
+                            </Box>
+                            <VStack space="xs" className="flex-1">
+                              <Text className="font-semibold text-base">
+                                {expense.expense_type_name}
                               </Text>
-                            )}
+                              {expense.description && (
+                                <Text className="text-sm text-typography-500" numberOfLines={1}>
+                                  {expense.description}
+                                </Text>
+                              )}
+                              <HStack space="sm" className="items-center flex-wrap">
+                                <Text className="text-xs text-typography-400">
+                                  {new Date(expense.transaction_date).toLocaleDateString()}
+                                </Text>
+                                {expense.odometer_reading && (
+                                  <>
+                                    <Text className="text-xs text-typography-400">•</Text>
+                                    <Text className="text-xs text-typography-400">
+                                      📍 {expense.odometer_reading.toLocaleString()} km
+                                    </Text>
+                                  </>
+                                )}
+                              </HStack>
+                              {(expense.energy_station_name || expense.company_name) && (
+                                <Text className="text-xs text-typography-500">
+                                  🏢 {expense.energy_station_name || expense.company_name}
+                                </Text>
+                              )}
+                            </VStack>
+                          </HStack>
+                          <VStack className="items-end">
+                            <Text className={`font-bold text-lg ${isFuel ? 'text-orange-500' : 'text-error-600'}`}>
+                              -{expense.amount.toFixed(2)}
+                            </Text>
+                            <Text className="text-xs text-typography-400">{expense.currency}</Text>
                           </VStack>
                         </HStack>
-                        <VStack className="items-end">
-                          <Text className="font-bold text-error-600 text-lg">
-                            -{expense.amount}
-                          </Text>
-                          <Text className="text-xs text-typography-400">{expense.currency}</Text>
-                        </VStack>
-                      </HStack>
-                    </Card>
-                  ))}
-                  
+                      </Card>
+                    );
+                  })}
+
                   {showMore && (
                     <Button
                       variant="outline"

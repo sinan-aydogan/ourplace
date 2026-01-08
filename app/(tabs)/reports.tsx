@@ -10,6 +10,8 @@ import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
+import { Icon } from '@/components/ui/icon';
+import { BarChart3 } from 'lucide-react-native';
 import { useReportData } from '@/hooks/useReportData';
 
 type DateRange = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
@@ -26,11 +28,12 @@ export default function ReportsPage() {
     }
     return name;
   };
-  const { 
+
+  const {
     period,
-    totalIncome, 
-    totalExpense, 
-    netProfit, 
+    totalIncome,
+    totalExpense,
+    netProfit,
     currency,
     expenseByCategory,
     incomeByCategory,
@@ -38,7 +41,7 @@ export default function ReportsPage() {
     lastPeriodExpense,
     lastPeriodProfit,
     loading,
-    refresh 
+    refresh
   } = useReportData(selectedRange);
 
   const onRefresh = async () => {
@@ -48,7 +51,7 @@ export default function ReportsPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('tr-TR', { 
+    return `${amount.toLocaleString('tr-TR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })} ${currency}`;
@@ -109,7 +112,7 @@ export default function ReportsPage() {
         <Heading size="md" className="text-typography-900">{title}</Heading>
         <VStack space="xs">
           {categories.map((category) => {
-            const percentage = isExpense 
+            const percentage = isExpense
               ? (category.amount / totalExpense) * 100
               : (category.amount / totalIncome) * 100;
 
@@ -129,7 +132,7 @@ export default function ReportsPage() {
                   </Text>
                 </HStack>
                 <Box className="h-2 bg-background-200 rounded-full overflow-hidden">
-                  <Box 
+                  <Box
                     className={`h-full rounded-full ${isExpense ? 'bg-error-500' : 'bg-success-500'}`}
                     style={{ width: `${percentage}%` }}
                   />
@@ -145,7 +148,7 @@ export default function ReportsPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-0" style={{ marginBottom: -25 }}>
+      <Box className="flex-1 bg-background-0 dark:bg-background-0" style={{ marginBottom: -48 }}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -153,12 +156,15 @@ export default function ReportsPage() {
         >
           <VStack className="p-4" space="lg">
             {/* Header */}
-            <VStack space="xs">
-              <Heading size="2xl" className="text-typography-900">
-                {t('reports.title')}
-              </Heading>
-              <Text className="text-typography-500">{period}</Text>
-            </VStack>
+            <HStack space="md" className="px-1 items-center">
+              <Icon as={BarChart3} className="w-12 h-12 text-blue-500" />
+              <VStack space="xs" className="flex-1">
+                <Heading size="2xl" className="text-typography-900 font-bold">
+                  {t('reports.title')}
+                </Heading>
+                <Text className="text-typography-500">{period}</Text>
+              </VStack>
+            </HStack>
 
             {/* Time Period Selector */}
             <HStack space="sm" className="flex-wrap">
@@ -167,9 +173,8 @@ export default function ReportsPage() {
                   key={range}
                   onPress={() => setSelectedRange(range)}
                   variant={selectedRange === range ? 'solid' : 'outline'}
-                  className={`flex-1 min-w-[90px] ${
-                    selectedRange === range ? 'bg-primary-600' : ''
-                  }`}
+                  className={`flex-1 min-w-[90px] ${selectedRange === range ? 'bg-primary-600' : ''
+                    }`}
                 >
                   <ButtonText className="text-xs font-semibold">
                     {t(`reports.${range}`)}
@@ -200,23 +205,22 @@ export default function ReportsPage() {
                       'text-error-600'
                     )}
                   </HStack>
-                  
+
                   <Card className="p-4 bg-background-50">
                     <VStack space="xs">
                       <Text className="text-xs text-typography-500 font-semibold">
                         {t('reports.netProfit')}
                       </Text>
-                      <Heading 
-                        size="lg" 
+                      <Heading
+                        size="lg"
                         className={netProfit >= 0 ? 'text-success-600' : 'text-error-600'}
                       >
                         {formatCurrency(netProfit)}
                       </Heading>
                       <HStack space="xs" className="items-center">
-                        <Text 
-                          className={`text-xs font-semibold ${
-                            netProfit >= lastPeriodProfit ? 'text-success-600' : 'text-error-600'
-                          }`}
+                        <Text
+                          className={`text-xs font-semibold ${netProfit >= lastPeriodProfit ? 'text-success-600' : 'text-error-600'
+                            }`}
                         >
                           {getChangePercentage(netProfit, lastPeriodProfit) >= 0 ? '+' : ''}
                           {getChangePercentage(netProfit, lastPeriodProfit)}%

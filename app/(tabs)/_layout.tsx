@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '@/contexts/AppContext';
 import { Home, Wallet, TrendingUp, BarChart3, Settings } from 'lucide-react-native';
@@ -7,33 +8,33 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { t } = useTranslation();
-  const { userVehicles } = useApp();
+  // Check if current selected vehicle is income-generating
+  // Note: we check selectedVehicle directly instead of scanning all vehicles
+  const { selectedVehicle, colorScheme } = useApp();
   const insets = useSafeAreaInsets();
-
-  // Check if user has any income-generating vehicle
-  const hasIncomeGeneratingVehicle = userVehicles.some(v => v.is_income_generating);
+  const showIncomeTab = selectedVehicle?.is_income_generating ?? false;
+  const isDark = colorScheme === 'dark';
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#22c55e',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarInactiveTintColor: isDark ? '#64748b' : '#94a3b8',
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: isDark ? '#171717' : '#FFFFFF',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 65 + Math.max(insets.bottom, 8),
+          height: (Platform.select({ ios: 60, android: 65 }) ?? 65) + insets.bottom,
           paddingTop: 0,
           paddingBottom: Math.max(insets.bottom, 16),
-          marginTop: -1,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
           letterSpacing: 0.3,
-          marginTop: 4,
+          marginBottom: 4,
         },
         tabBarIconStyle: {
           marginTop: 8,
@@ -50,7 +51,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      
+
       <Tabs.Screen
         name="expenses"
         options={{
@@ -66,7 +67,7 @@ export default function TabLayout() {
         name="incomes"
         options={{
           title: t('navigation.incomes'),
-          href: hasIncomeGeneratingVehicle ? undefined : null,
+          href: showIncomeTab ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <TrendingUp size={size || 24} color={color} strokeWidth={2.5} />
           ),

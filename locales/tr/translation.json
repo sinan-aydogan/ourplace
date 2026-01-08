@@ -176,7 +176,11 @@
     "upgrade": "Yükselt",
     "features": "Özellikler",
     "defaultCurrency": "Varsayılan Para Birimi",
-    "currencyUpdated": "Varsayılan para birimi başarıyla güncellendi"
+    "currencyUpdated": "Varsayılan para birimi başarıyla güncellendi",
+    "themeDescription": "Uygulama temasını seçin",
+    "themeSystem": "Sistem Varsayılanı",
+    "themeLight": "Aydınlık Mod",
+    "themeDark": "Karanlık Mod"
   },
   "subscription": {
     "free": "Ücretsiz",

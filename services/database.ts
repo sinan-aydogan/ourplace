@@ -552,7 +552,7 @@ class DatabaseService {
 
   async deleteVehicle(id: number): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    
+
     // Soft delete
     await this.db.runAsync(
       'UPDATE vehicles SET is_active = 0, updated_at = datetime("now") WHERE id = ?',
@@ -977,6 +977,38 @@ class DatabaseService {
     );
   }
 
+  async updateTransaction(id: number, updates: Partial<CreateTransactionInput>): Promise<VehicleTransaction> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key !== 'id' && value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+
+    if (fields.length === 0) throw new Error('No fields to update');
+
+    fields.push('updated_at = datetime("now")');
+    values.push(id);
+
+    await this.db.runAsync(
+      `UPDATE vehicle_transactions SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    const transaction = await this.db.getFirstAsync<VehicleTransaction>(
+      'SELECT * FROM vehicle_transactions WHERE id = ?',
+      [id]
+    );
+
+    if (!transaction) throw new Error('Transaction not found');
+    return transaction;
+  }
+
   async deleteTransaction(id: number): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.runAsync(
@@ -985,12 +1017,74 @@ class DatabaseService {
     );
   }
 
+  async updateExpense(id: number, updates: Partial<CreateExpenseInput>): Promise<Expense> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key !== 'id' && value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+
+    if (fields.length === 0) throw new Error('No fields to update');
+
+    values.push(id);
+
+    await this.db.runAsync(
+      `UPDATE expenses SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    const expense = await this.db.getFirstAsync<Expense>(
+      'SELECT * FROM expenses WHERE id = ?',
+      [id]
+    );
+
+    if (!expense) throw new Error('Expense not found');
+    return expense;
+  }
+
   async deleteExpense(id: number): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.runAsync(
       'DELETE FROM expenses WHERE id = ?',
       [id]
     );
+  }
+
+  async updateIncome(id: number, updates: Partial<CreateIncomeInput>): Promise<Income> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (key !== 'id' && value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+
+    if (fields.length === 0) throw new Error('No fields to update');
+
+    values.push(id);
+
+    await this.db.runAsync(
+      `UPDATE incomes SET ${fields.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    const income = await this.db.getFirstAsync<Income>(
+      'SELECT * FROM incomes WHERE id = ?',
+      [id]
+    );
+
+    if (!income) throw new Error('Income not found');
+    return income;
   }
 
   async deleteIncome(id: number): Promise<void> {
@@ -1004,10 +1098,11 @@ class DatabaseService {
   async getLastFuelTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
     if (!vehicleId || vehicleId <= 0) return null;
-    
+
     try {
-      // First, get all expense transactions for this vehicle
-      const transactions = await this.db.getAllAsync<TransactionWithDetails>(
+      // Use SQL LIKE for pattern matching to be more efficient and avoid loading all transactions
+      // We search for both 'fuel' (English) and 'yakıt' (Turkish)
+      const fuelTransaction = await this.db.getFirstAsync<TransactionWithDetails>(
         `SELECT vt.*, 
           et.name as expense_type_name, 
           it.name as income_type_name,
@@ -1018,16 +1113,11 @@ class DatabaseService {
          LEFT JOIN expenses e ON vt.id = e.transaction_id
          WHERE vt.vehicle_id = ? 
          AND vt.transaction_type = 'expense' 
-         ORDER BY vt.transaction_date DESC, vt.created_at DESC`,
+         AND (LOWER(et.name) LIKE '%fuel%' OR LOWER(et.name) LIKE '%yakıt%')
+         ORDER BY vt.transaction_date DESC, vt.created_at DESC
+         LIMIT 1`,
         [vehicleId]
       );
-
-      // Filter for fuel transactions in JavaScript to avoid SQL null issues
-      const fuelTransaction = transactions.find(t => {
-        const expenseTypeName = t.expense_type_name || '';
-        const lowerName = expenseTypeName.toLowerCase();
-        return lowerName.includes('fuel') || lowerName.includes('yakıt');
-      });
 
       return fuelTransaction || null;
     } catch (error) {
@@ -1039,7 +1129,7 @@ class DatabaseService {
   async getLastIncomeTransaction(vehicleId: number): Promise<TransactionWithDetails | null> {
     if (!this.db) throw new Error('Database not initialized');
     if (!vehicleId) return null;
-    
+
     try {
       return await this.db.getFirstAsync<TransactionWithDetails>(
         `SELECT vt.*, et.name as expense_type_name, it.name as income_type_name

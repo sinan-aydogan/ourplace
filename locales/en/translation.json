@@ -176,7 +176,11 @@
     "upgrade": "Upgrade",
     "features": "Features",
     "defaultCurrency": "Default Currency",
-    "currencyUpdated": "Default currency updated successfully"
+    "currencyUpdated": "Default currency updated successfully",
+    "themeDescription": "Select application theme",
+    "themeSystem": "System Default",
+    "themeLight": "Light Mode",
+    "themeDark": "Dark Mode"
   },
   "subscription": {
     "free": "Free",

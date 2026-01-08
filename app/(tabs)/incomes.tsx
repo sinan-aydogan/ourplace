@@ -26,17 +26,18 @@ import {
 } from '@/components/ui/select';
 import { Icon, ChevronDownIcon } from '@/components/ui/icon';
 import { Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel } from '@/components/ui/checkbox';
-import { CheckIcon, MoreVertical, Plus, Minus, Edit2 } from 'lucide-react-native';
+import { CheckIcon, MoreVertical, Plus, Minus, Edit2, TrendingUp } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { db } from '@/services/database';
 import { AddSourceModal } from '@/components/AddSourceModal';
 import { IncomeTypeModal } from '@/components/IncomeTypeModal';
 import type { TransactionWithDetails, IncomeType, Customer, Currency } from '@/types/database';
+import { BannerAdComponent } from '@/components/ads/BannerAd';
 
 export default function IncomesPage() {
   const { t } = useTranslation();
   const { selectedVehicle, user } = useApp();
-  
+
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [startOdometer, setStartOdometer] = useState('');
@@ -56,7 +57,7 @@ export default function IncomesPage() {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [lastIncome, setLastIncome] = useState<TransactionWithDetails | null>(null);
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
-  
+
   // Filter states
   const [dateFilter, setDateFilter] = useState<'weekly' | 'monthly' | 'yearly' | 'custom'>('monthly');
   const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
@@ -125,18 +126,18 @@ export default function IncomesPage() {
   // Apply filters to incomes
   const applyFilters = () => {
     const { start, end } = getDateRange();
-    
+
     let filtered = allIncomes.filter(i => {
       const date = new Date(i.transaction_date);
       const inDateRange = date >= start && date <= end;
-      
+
       // Category filter
-      const categoryCheck = selectedCategories.length === 0 || 
-                           (i.income_type_id !== null && selectedCategories.includes(i.income_type_id));
-      
+      const categoryCheck = selectedCategories.length === 0 ||
+        (i.income_type_id !== null && selectedCategories.includes(i.income_type_id));
+
       return inDateRange && categoryCheck;
     });
-    
+
     setIncomes(filtered);
   };
 
@@ -208,7 +209,7 @@ export default function IncomesPage() {
 
   const loadIncomes = async (loadMore = false) => {
     if (!selectedVehicle) return;
-    
+
     try {
       const offset = loadMore ? allIncomes.length : 0;
       const allTransactions = await db.getVehicleTransactions(
@@ -216,18 +217,18 @@ export default function IncomesPage() {
         100, // Load more transactions for filtering
         offset
       );
-      
+
       // Filter only incomes
       const incomeTransactions = allTransactions.filter(
         t => t.transaction_type === 'income'
       );
-      
+
       if (loadMore) {
         setAllIncomes([...allIncomes, ...incomeTransactions]);
       } else {
         setAllIncomes(incomeTransactions);
       }
-      
+
       // Load last transactions to determine latest odometer for placeholder
       const [lastInc, lastFuel] = await Promise.all([
         db.getLastIncomeTransaction(selectedVehicle.id),
@@ -237,7 +238,7 @@ export default function IncomesPage() {
 
       const lastFuelOdo = lastFuel?.odometer_reading ?? null;
       setLastOdometer(lastFuelOdo);
-      
+
       setShowMore(incomeTransactions.length === 100);
     } catch (error) {
       console.error('Failed to load incomes:', error);
@@ -246,28 +247,28 @@ export default function IncomesPage() {
 
   const handleAddIncome = async () => {
     if (!selectedVehicle || !user || !amount || !selectedIncomeType) return;
-    
+
     // Use user's default currency if none selected
     const currencyToUse = selectedCurrency || defaultCurrency;
-    
+
     // Check if exchange rate is required but not provided
     const isForeignCurrency = currencyToUse !== defaultCurrency;
     if (isForeignCurrency && !exchangeRate) {
       alert(t('validation.required') + ': ' + t('transactions.exchangeRate'));
       return;
     }
-    
+
     // Validate odometer readings
     if (startOdometer && endOdometer) {
       const start = parseInt(startOdometer);
       const end = parseInt(endOdometer);
-      
+
       // End odometer must be greater than start odometer
       if (end <= start) {
         alert(t('validation.endOdometerMustBeGreater'));
         return;
       }
-      
+
       // Check against last fuel transaction's odometer
       const lastFuel = await db.getLastFuelTransaction(selectedVehicle.id);
       if (lastFuel && lastFuel.odometer_reading) {
@@ -277,7 +278,7 @@ export default function IncomesPage() {
         }
       }
     }
-    
+
     try {
       setLoading(true);
 
@@ -313,7 +314,7 @@ export default function IncomesPage() {
       setExchangeRate('');
       setSelectedCurrency(defaultCurrency);
       setSelectedCustomer(null);
-      
+
       // Reload incomes
       await loadIncomes();
     } catch (error) {
@@ -355,7 +356,7 @@ export default function IncomesPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-50" style={{ marginBottom: -25 }}>
+      <Box className="flex-1 bg-background-50 dark:bg-background-0" style={{ marginBottom: -48 }}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -364,7 +365,7 @@ export default function IncomesPage() {
           <VStack className="p-4" space="lg">
             {/* Modern Header */}
             <HStack space="md" className="px-1 items-center">
-              <Text className="text-3xl">💰</Text>
+              <Icon as={TrendingUp} className="w-12 h-12 text-success-600" />
               <VStack space="xs" className="flex-1">
                 <Heading size="2xl" className="font-bold" numberOfLines={1}>{t('incomes.title')}</Heading>
                 <Text className="text-typography-500" numberOfLines={1}>{t('incomes.subtitle')}</Text>
@@ -372,7 +373,7 @@ export default function IncomesPage() {
             </HStack>
 
             {/* Monthly Summary Card */}
-            <Card className="p-5 shadow-md bg-white dark:bg-background-900">
+            <Card className="p-5 shadow-md bg-white dark:bg-background-50">
               <VStack space="sm">
                 <Text className="text-sm text-typography-500">
                   {calculateSummary().dateRange.start.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -389,10 +390,10 @@ export default function IncomesPage() {
             </Card>
 
             {/* Quick Income Form with modern styling */}
-            <Card className="p-5 shadow-lg bg-white dark:bg-background-900">
+            <Card className="p-5 shadow-lg bg-white dark:bg-background-50">
               <VStack space="lg">
                 <Heading size="md" className="font-semibold">{t('incomes.addIncome')}</Heading>
-                
+
                 {/* Income Type */}
                 <VStack space="xs">
                   <Text className="font-semibold text-sm text-typography-700">{t('incomes.incomeType')} *</Text>
@@ -402,8 +403,8 @@ export default function IncomesPage() {
                         selectedValue={selectedIncomeType?.toString() || ''}
                         onValueChange={(value) => setSelectedIncomeType(parseInt(value))}
                       >
-                        <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                          <SelectInput 
+                        <SelectTrigger className="border-2 border-background-200 dark:border-background-700 rounded-xl">
+                          <SelectInput
                             placeholder={t('incomes.incomeType')}
                             value={incomeTypes.find(t => t.id === selectedIncomeType)?.name}
                             className="text-base"
@@ -439,9 +440,9 @@ export default function IncomesPage() {
                             setShowIncomeTypeModal(true);
                           }
                         }}
-                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                        className="rounded-full h-6 w-6 p-0 flex-none -mb-0 border-background-200 dark:border-background-700"
                       >
-                        <ButtonIcon as={Edit2} size="xs" />
+                        <ButtonIcon as={Edit2} size="xs" className="text-typography-900" />
                       </Button>
                     )}
                     <Button
@@ -451,9 +452,9 @@ export default function IncomesPage() {
                         setEditingIncomeType(null);
                         setShowIncomeTypeModal(true);
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0"
+                      className="rounded-full h-6 w-6 p-0 flex-none -mb-0 border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Plus} size="xs" />
+                      <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                     </Button>
                   </HStack>
                 </VStack>
@@ -466,8 +467,8 @@ export default function IncomesPage() {
                       selectedValue={selectedCustomer?.toString() || ''}
                       onValueChange={(value) => setSelectedCustomer(parseInt(value))}
                     >
-                      <SelectTrigger className="border-2 border-background-200 rounded-xl">
-                        <SelectInput 
+                      <SelectTrigger className="border-2 border-background-200 dark:border-background-700 rounded-xl">
+                        <SelectInput
                           placeholder={t('incomes.selectCustomer')}
                           value={customers.find(c => c.id === selectedCustomer)?.name}
                           className="text-base"
@@ -496,9 +497,9 @@ export default function IncomesPage() {
                     size="md"
                     variant="outline"
                     onPress={() => setShowCustomerModal(true)}
-                    className="rounded-full h-6 w-6 p-0 flex-none -mb-6"
+                    className="rounded-full h-6 w-6 p-0 flex-none -mb-6 border-background-200 dark:border-background-700"
                   >
-                    <ButtonIcon as={Plus} size="xs" />
+                    <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                   </Button>
                 </HStack>
 
@@ -507,11 +508,11 @@ export default function IncomesPage() {
                   <HStack space="sm" className="items-center">
                     <Text className="font-semibold text-sm text-typography-700 w-24">{t('transactions.startOdometer')}</Text>
                     <VStack className="flex-1">
-                      <Input variant="outline" className={`border-2 rounded-xl ${startOdometer && lastOdometer !== null && parseInt(startOdometer) < lastOdometer ? 'border-error-500' : 'border-background-200'}`}>
+                      <Input variant="outline" className={`border-2 rounded-xl ${startOdometer && lastOdometer !== null && parseInt(startOdometer) < lastOdometer ? 'border-error-500' : 'border-background-200 dark:border-background-700'}`}>
                         <InputField
                           placeholder={lastOdometer !== null ? `>${lastOdometer.toLocaleString()}` : '0'}
                           value={startOdometer}
-                          onChangeText={setStartOdometer}
+                          onChangeText={(text) => setStartOdometer(text.replace(/[^0-9]/g, ''))}
                           keyboardType="numeric"
                           className="text-base"
                         />
@@ -527,9 +528,9 @@ export default function IncomesPage() {
                         const currentValue = startOdometer ? parseInt(startOdometer) : (lastOdometer || 0);
                         setStartOdometer((currentValue + 100).toString());
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none"
+                      className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Plus} size="xs" />
+                      <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                     </Button>
                     <Button
                       size="lg"
@@ -541,20 +542,20 @@ export default function IncomesPage() {
                           setStartOdometer((currentValue - 100).toString());
                         }
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none"
+                      className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Minus} size="xs" />
+                      <ButtonIcon as={Minus} size="xs" className="text-typography-900" />
                     </Button>
                   </HStack>
 
                   <HStack space="sm" className="items-center">
                     <Text className="font-semibold text-sm text-typography-700 w-24">{t('transactions.endOdometer')}</Text>
                     <VStack className="flex-1">
-                      <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                      <Input variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                         <InputField
                           placeholder={startOdometer ? `>${(parseInt(startOdometer) + 100).toLocaleString()}` : '0'}
                           value={endOdometer}
-                          onChangeText={setEndOdometer}
+                          onChangeText={(text) => setEndOdometer(text.replace(/[^0-9]/g, ''))}
                           keyboardType="numeric"
                           className="text-base"
                         />
@@ -567,9 +568,9 @@ export default function IncomesPage() {
                         const currentValue = endOdometer ? parseInt(endOdometer) : (startOdometer ? parseInt(startOdometer) + 100 : 0);
                         setEndOdometer((currentValue + 100).toString());
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none"
+                      className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Plus} size="xs" />
+                      <ButtonIcon as={Plus} size="xs" className="text-typography-900" />
                     </Button>
                     <Button
                       size="lg"
@@ -581,18 +582,18 @@ export default function IncomesPage() {
                           setEndOdometer((currentValue - 100).toString());
                         }
                       }}
-                      className="rounded-full h-6 w-6 p-0 flex-none"
+                      className="rounded-full h-6 w-6 p-0 flex-none border-background-200 dark:border-background-700"
                     >
-                      <ButtonIcon as={Minus} size="xs" />
+                      <ButtonIcon as={Minus} size="xs" className="text-typography-900" />
                     </Button>
                   </HStack>
                 </VStack>
 
-                <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                <Input variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                   <InputField
                     placeholder={t('transactions.amount')}
                     value={amount}
-                    onChangeText={setAmount}
+                    onChangeText={(text) => setAmount(text.replace(/[^0-9.,]/g, ''))}
                     keyboardType="numeric"
                     className="text-lg"
                   />
@@ -608,7 +609,7 @@ export default function IncomesPage() {
                     }
                   }}
                 >
-                  <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
+                  <SelectTrigger variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                     <SelectInput placeholder={t('transactions.currency')} className="text-lg" />
                     <SelectIcon className="mr-3" as={ChevronDownIcon} />
                   </SelectTrigger>
@@ -633,21 +634,21 @@ export default function IncomesPage() {
 
                 {/* Exchange Rate Input - Conditional */}
                 {selectedCurrency && selectedCurrency !== defaultCurrency && (
-                  <Input variant="outline" className="border-2 border-error-300 rounded-xl bg-error-50">
+                  <Input variant="outline" className="border-2 border-error-300 dark:border-error-700 rounded-xl bg-error-50 dark:bg-error-900/20">
                     <InputField
-                      placeholder={t('transactions.exchangeRate', { 
-                        currency: selectedCurrency, 
-                        defaultCurrency: defaultCurrency 
+                      placeholder={t('transactions.exchangeRate', {
+                        currency: selectedCurrency,
+                        defaultCurrency: defaultCurrency
                       })}
                       value={exchangeRate}
-                      onChangeText={setExchangeRate}
+                      onChangeText={(text) => setExchangeRate(text.replace(/[^0-9.,]/g, ''))}
                       keyboardType="numeric"
                       className="text-lg"
                     />
                   </Input>
                 )}
 
-                <Input variant="outline" className="border-2 border-background-200 rounded-xl">
+                <Input variant="outline" className="border-2 border-background-200 dark:border-background-700 rounded-xl">
                   <InputField
                     placeholder={t('transactions.description')}
                     value={description}
@@ -668,6 +669,11 @@ export default function IncomesPage() {
                 </Button>
               </VStack>
             </Card>
+
+            {/* Banner Ad */}
+            <Box className="items-center">
+              <BannerAdComponent />
+            </Box>
 
             {/* Incomes List */}
             <VStack space="md">
@@ -757,11 +763,11 @@ export default function IncomesPage() {
                   </VStack>
                 </Card>
               )}
-              
+
               {incomes.length === 0 ? (
                 <Card className="p-8 shadow-sm">
                   <VStack space="sm" className="items-center">
-                    <Text className="text-4xl">💰</Text>
+                    <Icon as={TrendingUp} size="xl" className="text-typography-400" />
                     <Text className="text-center text-typography-500 text-base">
                       {t('transactions.noTransactions')}
                     </Text>
@@ -770,11 +776,11 @@ export default function IncomesPage() {
               ) : (
                 <VStack space="sm">
                   {incomes.map((income) => (
-                    <Card key={income.id} className="p-4 shadow-md bg-white dark:bg-background-900 border-l-4 border-l-success-500">
+                    <Card key={income.id} className="p-4 shadow-md bg-white dark:bg-background-50 border-l-4 border-l-success-500">
                       <HStack className="justify-between items-center">
                         <HStack space="sm" className="flex-1 items-center">
                           <Box className="w-12 h-12 rounded-full bg-success-100 dark:bg-success-900/30 items-center justify-center">
-                            <Text className="text-2xl">💰</Text>
+                            <Icon as={TrendingUp} size="xl" className="text-success-600" />
                           </Box>
                           <VStack space="xs" className="flex-1">
                             <Text className="font-semibold text-base">
@@ -792,14 +798,14 @@ export default function IncomesPage() {
                         </HStack>
                         <VStack className="items-end">
                           <Text className="font-bold text-success-600 text-lg">
-                            +{income.amount}
+                            +{income.amount.toFixed(2)}
                           </Text>
                           <Text className="text-xs text-typography-400">{income.currency}</Text>
                         </VStack>
                       </HStack>
                     </Card>
                   ))}
-                  
+
                   {showMore && (
                     <Button
                       variant="outline"
@@ -830,7 +836,7 @@ export default function IncomesPage() {
           setSelectedCustomer(customer.id);
         }}
       />
-      
+
       {/* Income Type Modal */}
       <IncomeTypeModal
         isOpen={showIncomeTypeModal}

@@ -28,7 +28,7 @@ import type { Currency } from '@/types/database';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const { user, refreshUser } = useApp();
+  const { user, refreshUser, themeMode, setThemeMode } = useApp();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState(getCurrentLanguage());
@@ -56,7 +56,7 @@ export default function SettingsPage() {
 
   const handleCurrencyChange = async (newCurrency: string) => {
     if (!user) return;
-    
+
     try {
       await db.updateUser(user.id, { default_currency: newCurrency });
       setSelectedCurrency(newCurrency);
@@ -113,11 +113,46 @@ export default function SettingsPage() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <Box className="flex-1 bg-background-50" style={{ marginBottom: -25 }}>
+      <Box className="flex-1 bg-background-50 dark:bg-background-0" style={{ marginBottom: -48 }}>
         <ScrollView>
           <VStack className="p-4" space="lg">
             <Heading size="2xl" className="font-bold">{t('settings.title')}</Heading>
-            
+
+            {/* Theme Settings */}
+            <Card className="p-5 shadow-md">
+              <VStack space="md">
+                <VStack space="xs">
+                  <Text className="text-sm text-typography-500 uppercase font-semibold">
+                    {t('settings.theme')}
+                  </Text>
+                  <Text className="text-xs text-typography-400">
+                    {t('settings.themeDescription')}
+                  </Text>
+                </VStack>
+
+                <Select
+                  selectedValue={themeMode}
+                  onValueChange={(value) => setThemeMode(value as any)}
+                >
+                  <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
+                    <SelectInput placeholder={t('settings.theme')} />
+                    <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectBackdrop />
+                    <SelectContent>
+                      <SelectDragIndicatorWrapper>
+                        <SelectDragIndicator />
+                      </SelectDragIndicatorWrapper>
+                      <SelectItem label={t('settings.themeSystem')} value="system" />
+                      <SelectItem label={t('settings.themeLight')} value="light" />
+                      <SelectItem label={t('settings.themeDark')} value="dark" />
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </VStack>
+            </Card>
+
             {/* Language Settings */}
             <Card className="p-5 shadow-md">
               <VStack space="md">
@@ -129,13 +164,13 @@ export default function SettingsPage() {
                     {t('settings.languageDescription')}
                   </Text>
                 </VStack>
-                
+
                 <Select
                   selectedValue={selectedLanguage}
                   onValueChange={handleLanguageChange}
                 >
                   <SelectTrigger variant="outline" className="border-2 border-background-200 rounded-xl">
-                    <SelectInput 
+                    <SelectInput
                       placeholder={t('settings.language')}
                       value={`${getLanguageFlag(selectedLanguage)} ${getLanguageName(selectedLanguage)}`}
                     />
@@ -159,7 +194,7 @@ export default function SettingsPage() {
                 </Select>
               </VStack>
             </Card>
-            
+
             {/* Currency Settings */}
             <Card className="p-5 shadow-md">
               <VStack space="md">
@@ -171,7 +206,7 @@ export default function SettingsPage() {
                     Default currency for transactions and reports
                   </Text>
                 </VStack>
-                
+
                 <Select
                   selectedValue={selectedCurrency}
                   onValueChange={handleCurrencyChange}
